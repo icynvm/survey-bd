@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Survey | SurveyBD</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        body {
+            background: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .survey-topbar {
+            background: rgba(13, 13, 36, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .survey-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .survey-brand .logo {
+            width: 32px;
+            height: 32px;
+            background: var(--gradient);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .survey-container {
+            max-width: 680px;
+            margin: 32px auto;
+            width: 100%;
+            padding: 0 20px 60px;
+            flex: 1;
+        }
+
+        .survey-header-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .survey-header-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient);
+        }
+
+        .survey-title {
+            font-size: 26px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .survey-description {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .survey-meta {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .progress-container {
+            margin-top: 16px;
+        }
+
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .q-block {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 16px;
+            transition: var(--transition);
+            animation: slideUp 0.3s ease;
+        }
+
+        .q-block:hover {
+            border-color: rgba(99, 102, 241, 0.2);
+        }
+
+        .q-block-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            line-height: 1.5;
+        }
+
+        .q-block-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .q-required {
+            color: var(--danger);
+            margin-left: 4px;
+        }
+
+        .q-error {
+            color: var(--danger);
+            font-size: 12px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .q-error.show {
+            display: block;
+        }
+
+        /* Options */
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap-12px;
+            padding: 11px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            font-size: 14px;
+            color: var(--text-primary);
+            width: 100%;
+            text-align: left;
+            gap: 12px;
+        }
+
+        .option-btn:hover {
+            border-color: rgba(99, 102, 241, 0.4);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .option-btn.selected {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary-light);
+        }
+
+        .option-dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 10px;
+            transition: var(--transition);
+        }
+
+        .option-sq {
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            border: 2px solid currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 10px;
+            transition: var(--transition);
+        }
+
+        .option-btn.selected .option-dot,
+        .option-btn.selected .option-sq {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* Stars */
+        .star-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .star-btn {
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: var(--transition);
+            background: none;
+            border: none;
+            padding: 2px;
+        }
+
+        .star-btn.active,
+        .star-btn:hover {
+            color: #f59e0b;
+            transform: scale(1.1);
+        }
+
+        /* Scale */
+        .scale-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .scale-btn {
+            min-width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.03);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scale-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary-light);
+        }
+
+        .scale-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .scale-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        /* Submit */
+        .submit-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn-submit {
+            padding: 13px 32px;
+            font-size: 15px;
+            font-weight: 700;
+            background: var(--gradient);
+            border: none;
+            border-radius: var(--radius-md);
+            color: white;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Success */
+        .success-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: var(--radius-xl);
+            padding: 48px 32px;
+            text-align: center;
+            animation: slideUp 0.5s ease;
+        }
+
+        .success-icon {
+            font-size: 60px;
+            margin-bottom: 16px;
+        }
+
+        .success-title {
+            font-size: 26px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: var(--success);
+        }
+
+        .success-desc {
+            font-size: 15px;
+            color: var(--text-secondary);
+            max-width: 340px;
+            margin: 0 auto;
+        }
+
+        /* Error states */
+        .state-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 48px 32px;
+            text-align: center;
+        }
+
+        .state-icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+        }
+
+        .state-title {
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .state-desc {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="survey-topbar">
+        <div class="survey-brand">
+            <div class="logo">📊</div>
+            <span>SurveyBD</span>
+        </div>
+        <div class="lang-toggle">
+            <button class="lang-btn active" data-lang="en" onclick="I18n.setLang('en')">EN</button>
+            <button class="lang-btn" data-lang="th" onclick="I18n.setLang('th')">TH</button>
+        </div>
+    </div>
+
+    <div class="survey-container" id="survey-container">
+        <div style="display:flex;align-items:center;justify-content:center;height:300px">
+            <div class="spinner"></div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+    <script src="js/i18n.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        let survey, answers = {}, startTime = Date.now();
+
+        function onLangChange() { renderSurvey(); }
+
+        function renderError(icon, title, desc) {
+            document.getElementById('survey-container').innerHTML = `
+  <div class="state-card"><div class="state-icon">${icon}</div>
+  <div class="state-title">${title}</div>
+  <div class="state-desc">${desc}</div>
+  <a href="index.html" class="btn btn-primary" style="margin-top:20px"><i class="fas fa-home"></i> Home</a></div>`;
+        }
+
+        function renderSurvey() {
+            const lang = I18n.lang;
+            if (!survey) return;
+            const title = lang === 'th' && survey.titleTh ? survey.titleTh : survey.title;
+            const desc = lang === 'th' && survey.descriptionTh ? survey.descriptionTh : survey.description;
+            const qs = survey.questions || [];
+            const answered = Object.keys(answers).length;
+
+            let questionsHtml = qs.map((q, i) => {
+                const qtitle = lang === 'th' && q.titleTh ? q.titleTh : q.title || `Question ${i + 1}`;
+                let inputHtml = '';
+                const opts = lang === 'th' && q.optionsTh ? q.optionsTh : q.options || [];
+                const ans = answers[q.id];
+
+                switch (q.type) {
+                    case 'multiple_choice':
+                        inputHtml = opts.map(o => `
+        <button type="button" class="option-btn${ans === o ? ' selected' : ''}" onclick="setAnswer('${q.id}','${o.replace(/'/g, "\\'")}','mc')">
+          <div class="option-dot">${ans === o ? '✓' : ''}</div><span>${Utils.escapeHtml(o)}</span>
+        </button>`).join('');
+                        break;
+                    case 'checkboxes':
+                        inputHtml = opts.map(o => `
+        <button type="button" class="option-btn${(ans && ans.includes(o)) ? ' selected' : ''}" onclick="setAnswer('${q.id}','${o.replace(/'/g, "\\'")}','cb')">
+          <div class="option-sq">${(ans && ans.includes(o)) ? '✓' : ''}</div><span>${Utils.escapeHtml(o)}</span>
+        </button>`).join('');
+                        break;
+                    case 'short_text':
+                        inputHtml = `<input class="form-input" type="text" placeholder="${lang === 'th' ? 'คำตอบของคุณ...' : 'Your answer...'}" value="${Utils.escapeHtml(ans || '')}" oninput="setAnswer('${q.id}',this.value,'text')" maxlength="500"/>`;
+                        break;
+                    case 'long_text':
+                        inputHtml = `<textarea class="form-input" rows="4" placeholder="${lang === 'th' ? 'คำตอบของคุณ...' : 'Your answer...'}" oninput="setAnswer('${q.id}',this.value,'text')">${Utils.escapeHtml(ans || '')}</textarea>`;
+                        break;
+                    case 'rating':
+                        inputHtml = `<div class="star-group">${[1, 2, 3, 4, 5].map(n => `<button type="button" class="star-btn${(ans >= n) ? ' active' : ''}" onclick="setAnswer('${q.id}',${n},'rating')" data-n="${n}">★</button>`).join('')}</div><div class="text-xs text-muted" style="margin-top:6px">${ans ? `${ans}/5 stars` : lang === 'th' ? 'เลือกดาว' : 'Select rating'}</div>`;
+                        break;
+                    case 'scale':
+                        const min = q.minValue || 1, max = q.maxValue || 10;
+                        const btns = []; for (let n = min; n <= max; n++) btns.push(`<button type="button" class="scale-btn${ans === n ? ' active' : ''}" onclick="setAnswer('${q.id}',${n},'scale')">${n}</button>`);
+                        inputHtml = `<div class="scale-group">${btns.join('')}</div><div class="scale-labels"><span>${Utils.escapeHtml(q.minLabel || String(min))}</span><span>${Utils.escapeHtml(q.maxLabel || String(max))}</span></div>`;
+                        break;
+                    case 'dropdown':
+                        inputHtml = `<select class="form-select" onchange="setAnswer('${q.id}',this.value,'text')"><option value="">${lang === 'th' ? '-- เลือก --' : '-- Select --'}</option>${opts.map(o => `<option value="${Utils.escapeHtml(o)}"${ans === o ? ' selected' : ''}>${Utils.escapeHtml(o)}</option>`).join('')}</select>`;
+                        break;
+                    case 'date':
+                        inputHtml = `<input class="form-input" type="date" value="${ans || ''}" onchange="setAnswer('${q.id}',this.value,'text')" style="max-width:220px"/>`;
+                        break;
+                    case 'yes_no':
+                        inputHtml = `<div style="display:flex;gap:12px">
+        <button type="button" class="option-btn${ans === 'yes' ? ' selected' : ''}" style="max-width:120px" onclick="setAnswer('${q.id}','yes','mc')"><span style="font-size:18px">✓</span> ${I18n.t('common.yes')}</button>
+        <button type="button" class="option-btn${ans === 'no' ? ' selected' : ''}" style="max-width:120px" onclick="setAnswer('${q.id}','no','mc')"><span style="font-size:18px">✗</span> ${I18n.t('common.no')}</button>
+        </div>`;
+                        break;
+                }
+                return `
+    <div class="q-block" id="qb-${q.id}">
+      <div class="q-block-title">${i + 1}. ${Utils.escapeHtml(qtitle)}${q.required ? `<span class="q-required">*</span>` : ''}</div>
+      ${inputHtml}
+      <div class="q-error" id="err-${q.id}">⚠️ ${lang === 'th' ? 'กรุณาตอบคำถามนี้' : 'This field is required'}</div>
+    </div>`;
+            }).join('');
+
+            const progressHtml = survey.settings?.showProgress ? `
+  <div class="progress-container">
+    <div class="progress-text"><span>${lang === 'th' ? 'ความคืบหน้า' : 'Progress'}</span><span>${answered}/${qs.length}</span></div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${qs.length ? Math.round(answered / qs.length * 100) : 0}%"></div></div>
+  </div>` : '';
+
+            document.getElementById('survey-container').innerHTML = `
+  <div class="survey-header-card">
+    <div class="survey-title">${Utils.escapeHtml(title)}</div>
+    ${desc ? `<div class="survey-description">${Utils.escapeHtml(desc)}</div>` : ''}
+    <div class="survey-meta"><span>📋 ${qs.length} ${lang === 'th' ? 'คำถาม' : 'questions'}</span><span>⏱ ~${Math.ceil(qs.length * 0.5)} ${lang === 'th' ? 'นาที' : 'min'}</span></div>
+    ${progressHtml}
+  </div>
+  ${questionsHtml}
+  <div class="submit-card">
+    <span class="text-sm text-muted"><i class="fas fa-shield-alt"></i> ${lang === 'th' ? 'ข้อมูลของคุณปลอดภัย' : 'Your data is secure'}</span>
+    <button class="btn-submit" onclick="submitSurvey()" id="submit-btn">${I18n.t('survey.submitResponse')} <i class="fas fa-paper-plane"></i></button>
+  </div>`;
+        }
+
+        function setAnswer(qId, val, type) {
+            if (type === 'cb') {
+                if (!answers[qId]) answers[qId] = [];
+                const idx = answers[qId].indexOf(val);
+                if (idx >= 0) answers[qId].splice(idx, 1); else answers[qId].push(val);
+            } else {
+                answers[qId] = val;
+            }
+            const errEl = document.getElementById(`err-${qId}`);
+            if (errEl) errEl.classList.remove('show');
+            renderSurvey();
+            // Scroll to keep position
+        }
+
+        function submitSurvey() {
+            const lang = I18n.lang;
+            let valid = true;
+            survey.questions.forEach(q => {
+                if (!q.required) return;
+                const ans = answers[q.id];
+                const isEmpty = !ans || (Array.isArray(ans) && !ans.length) || ans === '' || ans === null || ans === undefined;
+                const errEl = document.getElementById(`err-${q.id}`);
+                if (isEmpty) { valid = false; if (errEl) errEl.classList.add('show'); }
+            });
+            if (!valid) { Toast.show(I18n.t('survey.fillRequired'), 'warning'); return; }
+
+            const btn = document.getElementById('submit-btn');
+            if (btn) { btn.disabled = true; btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`; }
+
+            setTimeout(() => {
+                const session = Auth.getUser();
+                const response = {
+                    id: Utils.uid(), surveyId: survey.id,
+                    respondentId: session?.id || null, respondentName: session?.name || 'Anonymous',
+                    answers, submittedAt: new Date().toISOString(),
+                    completionTime: Math.floor((Date.now() - startTime) / 1000)
+                };
+                DB.saveResponse(response);
+                if (!survey.settings?.allowMultiple && session) localStorage.setItem(`sv_done_${survey.id}_${session.id}`, '1');
+                document.getElementById('survey-container').innerHTML = `
+    <div class="success-card">
+      <div class="success-icon">🎉</div>
+      <div class="success-title">${I18n.t('survey.thankYou')}</div>
+      <div class="success-desc">${I18n.t('survey.thankYouDesc')}</div>
+      <div style="margin-top:24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <a href="index.html" class="btn btn-secondary"><i class="fas fa-home"></i> Home</a>
+        <button class="btn btn-primary" onclick="location.reload()"><i class="fas fa-redo"></i> ${lang === 'th' ? 'ตอบอีกครั้ง' : 'Fill Again'}</button>
+      </div>
+    </div>`;
+            }, 800);
+        }
+
+        window.onload = () => {
+            I18n.init();
+            const params = new URLSearchParams(location.search);
+            const id = params.get('id');
+            if (!id) { renderError('🔗', 'No Survey ID', 'No survey ID provided in the URL.'); return; }
+            survey = DB.getSurveyById(id);
+            if (!survey) { renderError('🔍', I18n.t('survey.surveyNotFound'), 'The survey you are looking for does not exist.'); return; }
+            if (survey.status === 'draft') { renderError('🔒', I18n.t('survey.surveyNotPublished'), 'This survey has not been published yet.'); return; }
+            if (survey.status === 'closed') { renderError('🔒', I18n.t('survey.surveyClosed'), 'This survey is no longer accepting responses.'); return; }
+            document.title = `${survey.title} | SurveyBD`;
+            renderSurvey();
+        };
+    </script>
+</body>
+
+</html>
