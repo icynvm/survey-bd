@@ -8,19 +8,19 @@ import { QUESTION_TYPE_INFO, uid, DEFAULT_LIKERT_SCALE, DEFAULT_LIKERT_SCALE_TH 
 import * as DB from '@/lib/db';
 import * as Auth from '@/lib/auth';
 import type { Survey, Question, QuestionType } from '@/types';
-import { BsGrid3X3Gap, BsListUl, BsCheck2Square, BsTextareaT, BsJustifyLeft, BsStarFill, BsSliders, BsChevronDown, BsCalendarDate, BsToggleOn } from 'react-icons/bs';
+import { FiGrid, FiList, FiCheckSquare, FiType, FiAlignLeft, FiStar, FiSliders, FiChevronDown, FiCalendar, FiToggleRight } from 'react-icons/fi';
 
 const ICON_MAP: Record<QuestionType, React.ReactNode> = {
-    likert: <BsGrid3X3Gap size={16} />,
-    multiple_choice: <BsListUl size={16} />,
-    checkboxes: <BsCheck2Square size={16} />,
-    short_text: <BsTextareaT size={16} />,
-    long_text: <BsJustifyLeft size={16} />,
-    rating: <BsStarFill size={16} />,
-    scale: <BsSliders size={16} />,
-    dropdown: <BsChevronDown size={16} />,
-    date: <BsCalendarDate size={16} />,
-    yes_no: <BsToggleOn size={16} />
+    likert: <FiGrid size={16} />,
+    multiple_choice: <FiList size={16} />,
+    checkboxes: <FiCheckSquare size={16} />,
+    short_text: <FiType size={16} />,
+    long_text: <FiAlignLeft size={16} />,
+    rating: <FiStar size={16} />,
+    scale: <FiSliders size={16} />,
+    dropdown: <FiChevronDown size={16} />,
+    date: <FiCalendar size={16} />,
+    yes_no: <FiToggleRight size={16} />
 };
 
 const Q_TYPES: QuestionType[] = [
@@ -201,18 +201,35 @@ export default function BuilderPage() {
                     <div className="form-group">
                         <label className="form-label">Sub-Questions (rows)</label>
                         {(selectedQ.likertRows ?? []).map((row, i) => (
-                            <div key={i} style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
-                                <input style={{ ...inputStyle, flex: 1 }} value={row} onChange={e => { const r = [...(selectedQ.likertRows ?? [])]; r[i] = e.target.value; updateQ(selectedQ.id, { likertRows: r }); }} />
-                                <button onClick={() => { const r = (selectedQ.likertRows ?? []).filter((_, j) => j !== i); updateQ(selectedQ.id, { likertRows: r }); }} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: 18 }}>×</button>
+                            <div key={i} style={{ marginBottom: 12, padding: 12, background: 'rgba(255,255,255,0.02)', borderRadius: 8, border: '1px solid var(--border)' }}>
+                                <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                                    <input style={{ ...inputStyle, flex: 1 }} value={row} onChange={e => { const r = [...(selectedQ.likertRows ?? [])]; r[i] = e.target.value; updateQ(selectedQ.id, { likertRows: r }); }} />
+                                    <button onClick={() => {
+                                        const r = (selectedQ.likertRows ?? []).filter((_, j) => j !== i);
+                                        const rDesc = (selectedQ.likertRowDescriptions ?? []).filter((_, j) => j !== i);
+                                        updateQ(selectedQ.id, { likertRows: r, likertRowDescriptions: rDesc });
+                                    }} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: 18 }}>×</button>
+                                </div>
+                                <input
+                                    style={{ ...inputStyle, fontSize: 12, padding: '6px 10px', background: 'rgba(0,0,0,0.2)' }}
+                                    placeholder="Optional description/explanation for this row"
+                                    value={(selectedQ.likertRowDescriptions ?? [])[i] ?? ''}
+                                    onChange={e => {
+                                        const d = [...(selectedQ.likertRowDescriptions ?? [])];
+                                        d[i] = e.target.value;
+                                        updateQ(selectedQ.id, { likertRowDescriptions: d });
+                                    }}
+                                />
                             </div>
                         ))}
-                        <button onClick={() => { const q = selectedQ; const n = (q.likertRows ?? []).length + 1; updateQ(q.id, { likertRows: [...(q.likertRows ?? []), `Sub-question ${n}`], likertRowsTh: [...(q.likertRowsTh ?? []), `คำถามย่อย ${n}`] }); }} style={{ color: 'var(--primary-light)', fontSize: 13, background: 'none', border: 'none', cursor: 'pointer', padding: '6px 0', marginTop: 4 }}>+ Add Row</button>
-
-                        {/* Other toggle for Likert rows */}
-                        <label className="form-check" style={{ marginTop: 16 }}>
-                            <input type="checkbox" checked={!!selectedQ.hasOther} onChange={e => updateQ(selectedQ.id, { hasOther: e.target.checked })} />
-                            <span style={{ fontSize: 13 }}>Enable "Other (please specify)" row</span>
-                        </label>
+                        <button onClick={() => {
+                            const q = selectedQ; const n = (q.likertRows ?? []).length + 1;
+                            updateQ(q.id, {
+                                likertRows: [...(q.likertRows ?? []), `Sub-question ${n}`],
+                                likertRowsTh: [...(q.likertRowsTh ?? []), `คำถามย่อย ${n}`],
+                                likertRowDescriptions: [...(q.likertRowDescriptions ?? []), '']
+                            });
+                        }} style={{ color: 'var(--primary-light)', fontSize: 13, background: 'none', border: 'none', cursor: 'pointer', padding: '6px 0', marginTop: 4 }}>+ Add Row</button>
                     </div>
                 </>)}
 
