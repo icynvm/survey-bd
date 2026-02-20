@@ -8,19 +8,19 @@ import { QUESTION_TYPE_INFO, uid, DEFAULT_LIKERT_SCALE, DEFAULT_LIKERT_SCALE_TH 
 import * as DB from '@/lib/db';
 import * as Auth from '@/lib/auth';
 import type { Survey, Question, QuestionType } from '@/types';
-import { LuLayout, LuList, LuCheckSquare, LuType, LuAlignLeft, LuStar, LuSliders, LuChevronDown, LuCalendar, LuToggleRight } from 'react-icons/lu';
+import { BsGrid3X3Gap, BsListUl, BsCheck2Square, BsTextareaT, BsJustifyLeft, BsStarFill, BsSliders, BsChevronDown, BsCalendarDate, BsToggleOn } from 'react-icons/bs';
 
 const ICON_MAP: Record<QuestionType, React.ReactNode> = {
-    likert: <LuLayout size={16} />,
-    multiple_choice: <LuList size={16} />,
-    checkboxes: <LuCheckSquare size={16} />,
-    short_text: <LuType size={16} />,
-    long_text: <LuAlignLeft size={16} />,
-    rating: <LuStar size={16} />,
-    scale: <LuSliders size={16} />,
-    dropdown: <LuChevronDown size={16} />,
-    date: <LuCalendar size={16} />,
-    yes_no: <LuToggleRight size={16} />
+    likert: <BsGrid3X3Gap size={16} />,
+    multiple_choice: <BsListUl size={16} />,
+    checkboxes: <BsCheck2Square size={16} />,
+    short_text: <BsTextareaT size={16} />,
+    long_text: <BsJustifyLeft size={16} />,
+    rating: <BsStarFill size={16} />,
+    scale: <BsSliders size={16} />,
+    dropdown: <BsChevronDown size={16} />,
+    date: <BsCalendarDate size={16} />,
+    yes_no: <BsToggleOn size={16} />
 };
 
 const Q_TYPES: QuestionType[] = [
