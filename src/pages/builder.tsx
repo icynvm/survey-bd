@@ -112,8 +112,18 @@ export default function BuilderPage() {
             if (ok) { const upd = { ...survey, status: 'closed' as const, updatedAt: new Date().toISOString() }; DB.saveSurvey(upd); setSurvey(upd); toast.show('Survey closed'); }
         } else {
             if (!survey.questions.length) { toast.show('Add at least one question before publishing!', 'warning'); return; }
+            if (!survey.title) { toast.show('Survey needs a title!', 'warning'); return; }
             const ok = await confirm(t('survey.publishConfirm'));
-            if (ok) { const upd = { ...survey, status: 'published' as const, publishedAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; DB.saveSurvey(upd); setSurvey(upd); toast.show(t('builder.publishSuccess')); }
+            if (ok) { const upd = { ...survey, status: 'published' as const, publishedAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; DB.saveSurvey(upd); setSurvey(upd); toast.show('Survey published!'); }
+        }
+    };
+
+    const handleDeleteSurvey = async () => {
+        const ok = await confirm('Are you sure you want to delete this entire survey? This action cannot be undone.');
+        if (ok) {
+            DB.deleteSurvey(survey.id);
+            toast.show('Survey deleted.', 'success');
+            router.push('/dashboard');
         }
     };
 
@@ -166,7 +176,6 @@ export default function BuilderPage() {
                                 <button onClick={() => { const o = (selectedQ.options ?? []).filter((_, j) => j !== i); const oth = (selectedQ.optionsTh ?? []).filter((_, j) => j !== i); updateQ(selectedQ.id, { options: o, optionsTh: oth }); }} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: 18, flexShrink: 0 }}>×</button>
                             </div>
                         ))}
-                        <button onClick={() => { const n = (selectedQ.options ?? []).length + 1; updateQ(selectedQ.id, { options: [...(selectedQ.options ?? []), `Option ${n}`], optionsTh: [...(selectedQ.optionsTh ?? []), `ตัวเลือก ${n}`] }); }} style={{ color: 'var(--primary-light)', fontSize: 13, background: 'none', border: 'none', cursor: 'pointer', padding: '6px 0' }}>+ Add Option</button>
                         {/* Other toggle */}
                         <label className="form-check" style={{ marginTop: 10 }}>
                             <input type="checkbox" checked={!!selectedQ.hasOther} onChange={e => updateQ(selectedQ.id, { hasOther: e.target.checked })} />
@@ -197,7 +206,13 @@ export default function BuilderPage() {
                                 <button onClick={() => { const r = (selectedQ.likertRows ?? []).filter((_, j) => j !== i); updateQ(selectedQ.id, { likertRows: r }); }} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: 18 }}>×</button>
                             </div>
                         ))}
-                        <button onClick={() => updateQ(selectedQ.id, { likertRows: [...(selectedQ.likertRows ?? []), `Sub-question ${(selectedQ.likertRows ?? []).length + 1}`] })} style={{ color: 'var(--primary-light)', fontSize: 13, background: 'none', border: 'none', cursor: 'pointer', padding: '6px 0' }}>+ Add Row</button>
+                        <button onClick={() => { const q = selectedQ; const n = (q.likertRows ?? []).length + 1; updateQ(q.id, { likertRows: [...(q.likertRows ?? []), `Sub-question ${n}`], likertRowsTh: [...(q.likertRowsTh ?? []), `คำถามย่อย ${n}`] }); }} style={{ color: 'var(--primary-light)', fontSize: 13, background: 'none', border: 'none', cursor: 'pointer', padding: '6px 0', marginTop: 4 }}>+ Add Row</button>
+
+                        {/* Other toggle for Likert rows */}
+                        <label className="form-check" style={{ marginTop: 16 }}>
+                            <input type="checkbox" checked={!!selectedQ.hasOther} onChange={e => updateQ(selectedQ.id, { hasOther: e.target.checked })} />
+                            <span style={{ fontSize: 13 }}>Enable "Other (please specify)" row</span>
+                        </label>
                     </div>
                 </>)}
 
@@ -246,14 +261,23 @@ export default function BuilderPage() {
                             <button className="btn btn-secondary btn-sm" onClick={saveSurvey}>💾 Save</button>
                             <button className="btn btn-primary btn-sm" onClick={publishSurvey}>🚀 {survey.status === 'published' ? 'Close' : 'Publish'}</button>
                             {survey.status === 'published' && <button className="btn btn-secondary btn-sm" onClick={() => setShareOpen(true)}>🔗 Share</button>}
+
+                            <div style={{ width: 1, height: 20, background: 'var(--border)', margin: '0 4px' }} />
+                            <button
+                                className="btn btn-sm"
+                                onClick={handleDeleteSurvey}
+                                style={{ background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', border: '1px solid rgba(239, 68, 68, 0.2)' }}
+                            >
+                                🗑 Delete
+                            </button>
                         </div>
                     </header>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', height: 'calc(100vh - var(--topbar-h))', overflow: 'hidden' }}>
                         {/* Canvas */}
-                        <div style={{ overflowY: 'auto', padding: 20, background: 'rgba(0,0,0,0.2)' }}>
-                            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: 20, marginBottom: 16 }}>
-                                <input value={survey.title} onChange={e => updateSurvey({ title: e.target.value })} placeholder="Survey Title (EN)" style={{ background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: 22, fontWeight: 800, width: '100%', padding: 0, outline: 'none' }} />
-                                <textarea value={survey.description} onChange={e => updateSurvey({ description: e.target.value })} placeholder="Description / Instructions" rows={2} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: 14, width: '100%', padding: 0, marginTop: 6, resize: 'none', fontFamily: 'inherit', outline: 'none' }} />
+                        <div style={{ overflowY: 'auto', padding: '32px', background: 'var(--bg-primary)' }}>
+                            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '24px', marginBottom: '24px', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+                                <input value={survey.title} onChange={e => updateSurvey({ title: e.target.value })} placeholder="Survey Title (EN)" style={{ background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: 28, fontWeight: 800, width: '100%', padding: 0, outline: 'none' }} />
+                                <textarea value={survey.description} onChange={e => updateSurvey({ description: e.target.value })} placeholder="Description / Instructions" rows={2} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: 15, width: '100%', padding: 0, marginTop: 8, resize: 'none', fontFamily: 'inherit', outline: 'none' }} />
                             </div>
                             {survey.questions.length === 0 ? (
                                 <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)' }}>
@@ -266,8 +290,11 @@ export default function BuilderPage() {
                                 const title = lang === 'th' && q.titleTh ? q.titleTh : q.title || `Question ${i + 1}`;
                                 const desc = lang === 'th' && q.descriptionTh ? q.descriptionTh : q.description;
                                 return (
-                                    <div key={q.id} onClick={() => setSelectedQId(q.id)} draggable
+                                    <div
+                                        key={q.id}
+                                        draggable
                                         onDragStart={() => { dragSrcRef.current = q.id; }}
+                                        onDragEnd={e => { e.currentTarget.style.opacity = '1'; }}
                                         onDragOver={e => e.preventDefault()}
                                         onDrop={() => {
                                             if (!dragSrcRef.current || dragSrcRef.current === q.id) return;
@@ -275,8 +302,16 @@ export default function BuilderPage() {
                                             setSurvey(s => { if (!s) return s; const qs = [...s.questions]; const si = qs.findIndex(x => x.id === src); const ti = qs.findIndex(x => x.id === q.id); const [r] = qs.splice(si, 1); qs.splice(ti, 0, r); return { ...s, questions: qs }; });
                                             dragSrcRef.current = null;
                                         }}
-                                        style={{ background: 'var(--bg-card)', border: `1px solid ${selectedQId === q.id ? 'var(--primary)' : 'var(--border)'}`, borderRadius: 12, padding: 16, marginBottom: 12, cursor: 'pointer', boxShadow: selectedQId === q.id ? '0 0 0 1px var(--primary)' : 'none' }}>
-                                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                                        onClick={() => setSelectedQId(q.id)}
+                                        style={{
+                                            background: selectedQId === q.id ? 'var(--bg-card-hover)' : 'var(--bg-card)',
+                                            border: `1px solid ${selectedQId === q.id ? 'var(--primary)' : 'var(--border)'}`,
+                                            borderRadius: 'var(--radius-lg)', padding: '20px 24px', marginBottom: '16px',
+                                            cursor: 'pointer', position: 'relative', transition: 'var(--transition)',
+                                            boxShadow: selectedQId === q.id ? '0 0 0 2px rgba(99, 102, 241, 0.2)' : '0 4px 20px rgba(0,0,0,0.1)'
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
                                             <span style={{ color: 'var(--text-muted)', cursor: 'grab', fontSize: 14, marginTop: 2 }}>⠿</span>
                                             <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>{i + 1}</div>
                                             <div style={{ flex: 1, minWidth: 0 }}>
