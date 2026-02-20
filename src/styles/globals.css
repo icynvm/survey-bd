@@ -1,24 +1,24 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Sarabun:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --bg-primary: #070714;
-  --bg-secondary: #0d0d24;
-  --bg-card: rgba(255, 255, 255, 0.04);
-  --bg-card-hover: rgba(255, 255, 255, 0.07);
-  --border: rgba(255, 255, 255, 0.08);
-  --border-focus: rgba(99, 102, 241, 0.6);
-  --primary: #6366f1;
-  --primary-dark: #4f46e5;
-  --primary-light: #818cf8;
+  --bg-primary: #050505;
+  --bg-secondary: #0a0a0a;
+  --bg-card: rgba(255, 255, 255, 0.03);
+  --bg-card-hover: rgba(255, 255, 255, 0.06);
+  --border: rgba(255, 255, 255, 0.12);
+  --border-focus: rgba(255, 255, 255, 0.3);
+  --primary: #ffffff;
+  --primary-dark: #e5e5e5;
+  --primary-light: #a3a3a3;
   --secondary: #a855f7;
   --accent: #06b6d4;
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
   --info: #3b82f6;
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --text-primary: #ffffff;
+  --text-secondary: #a3a3a3;
+  --text-muted: #737373;
   --gradient: linear-gradient(135deg, #6366f1, #a855f7);
   --gradient-accent: linear-gradient(135deg, #06b6d4, #6366f1);
   --sidebar-w: 260px;
@@ -46,7 +46,7 @@ html {
 }
 
 body {
-  font-family: 'Inter', 'Sarabun', sans-serif;
+  font-family: 'Outfit', 'Noto Sans Thai', sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
   min-height: 100vh;
