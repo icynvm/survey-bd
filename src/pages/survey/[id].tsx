@@ -136,7 +136,14 @@ export default function SurveyPage() {
                                     const likertAns = (answers[q.id] as LikertAns) ?? {};
                                     return (
                                         <tr key={ri} style={{ background: ri % 2 === 0 ? 'rgba(255,255,255,0.01)' : 'rgba(255,255,255,0.03)' }}>
-                                            <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{row}</td>
+                                            <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                                                <div style={{ fontWeight: 500 }}>{row}</div>
+                                                {q.likertRowDescriptions && q.likertRowDescriptions[ri] && (
+                                                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4, lineHeight: 1.4, fontStyle: 'italic' }}>
+                                                        {q.likertRowDescriptions[ri]}
+                                                    </div>
+                                                )}
+                                            </td>
                                             {scale.map((s, si) => (
                                                 <td key={si} style={{ textAlign: 'center', padding: '10px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                                                     <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -155,55 +162,8 @@ export default function SurveyPage() {
                                 })}
                             </tbody>
                         </table>
-
-                        {q.hasOther && (
-                            <div style={{ padding: '12px', borderTop: '1px solid var(--border)', background: answers[q.id] && Object.keys(answers[q.id] as LikertAns).some(k => k === '__other__') ? 'rgba(99,102,241,0.05)' : 'transparent' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                    <div style={{ flex: 1, minWidth: 150 }}>
-                                        <input
-                                            type="text"
-                                            value={otherText[q.id] ?? ''}
-                                            onChange={e => {
-                                                setOtherText(o => ({ ...o, [q.id]: e.target.value }));
-                                            }}
-                                            onBlur={() => {
-                                                // Ensure the 'Other' text is recorded even if no rating is selected yet
-                                                if (otherText[q.id]) {
-                                                    const likertAns = (answers[q.id] as LikertAns) ?? {};
-                                                    if (!likertAns['__other__']) {
-                                                        const updated: LikertAns = { ...likertAns, ['__other__']: '' };
-                                                        setAnswer(q.id, updated as unknown as AnswerValue);
-                                                    }
-                                                }
-                                            }}
-                                            placeholder="Other (please specify)"
-                                            style={{ width: '100%', background: 'none', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--text-primary)', outline: 'none', fontSize: 13, padding: '8px 12px' }}
-                                        />
-                                    </div>
-                                    <div style={{ display: 'flex', gap: 0, justifyContent: 'space-around', flex: 1 }}>
-                                        {scale.map((s, si) => {
-                                            const likertAns = (answers[q.id] as LikertAns) ?? {};
-                                            return (
-                                                <div key={`other_${si}`} style={{ textAlign: 'center', flex: 1, minWidth: 72 }}>
-                                                    <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                                                        <input type="radio" name={`${q.id}_other`} value={s}
-                                                            checked={likertAns['__other__'] === s}
-                                                            onChange={() => {
-                                                                const updated: LikertAns = { ...likertAns, ['__other__']: s };
-                                                                setAnswer(q.id, updated as unknown as AnswerValue);
-                                                            }}
-                                                            style={{ width: 18, height: 18, accentColor: 'var(--primary)', cursor: 'pointer' }} />
-                                                    </label>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
                     </div>
-                )
-                }
+                )}
 
                 {/* ── Multiple Choice ── */}
                 {
