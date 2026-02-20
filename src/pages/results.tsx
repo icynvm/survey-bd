@@ -104,7 +104,10 @@ export default function ResultsPage() {
                                         <div style={{ fontSize: 22, fontWeight: 800 }}>{lang === 'th' && selectedSurvey.titleTh ? selectedSurvey.titleTh : selectedSurvey.title}</div>
                                         <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>{responses.length} responses</div>
                                     </div>
-                                    <button className="btn btn-secondary btn-sm" onClick={doExport}>📥 {t('results.exportCSV')}</button>
+                                    <div style={{ display: 'flex', gap: 8 }}>
+                                        <button className="btn btn-secondary btn-sm" onClick={() => window.open(`/print/${selectedSurvey.id}`, '_blank')}>🖨 {t('results.print')}</button>
+                                        <button className="btn btn-secondary btn-sm" onClick={doExport}>📥 {t('results.exportCSV')}</button>
+                                    </div>
                                 </div>
 
                                 {/* Stats */}
