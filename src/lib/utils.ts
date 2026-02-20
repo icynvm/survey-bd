@@ -56,16 +56,20 @@ export const getRoleClass = (role: Role): string => ({
     admin: 'badge-danger', creator: 'badge-primary', respondent: 'badge-muted'
 }[role] ?? 'badge-muted');
 
+export const DEFAULT_LIKERT_SCALE = ['Very Satisfied', 'Satisfied', 'Moderate', 'Need Improvement', 'Dissatisfied', 'N/A'];
+export const DEFAULT_LIKERT_SCALE_TH = ['พึงพอใจมาก', 'พึงพอใจ', 'ปานกลาง', 'ควรปรับปรุง', 'ไม่พึงพอใจ', 'ไม่เกี่ยวข้อง'];
+
 export const QUESTION_TYPE_INFO: Record<QuestionType, QuestionTypeInfo> = {
     multiple_choice: { icon: '🔘', color: '#6366f1', en: 'Multiple Choice', th: 'ตัวเลือกเดียว' },
     checkboxes: { icon: '☑️', color: '#8b5cf6', en: 'Checkboxes', th: 'หลายตัวเลือก' },
     short_text: { icon: '✏️', color: '#06b6d4', en: 'Short Answer', th: 'คำตอบสั้น' },
     long_text: { icon: '📝', color: '#0ea5e9', en: 'Long Answer', th: 'คำตอบยาว' },
-    rating: { icon: '⭐', color: '#f59e0b', en: 'Rating', th: 'คะแนนดาว' },
+    rating: { icon: '⭐', color: '#f59e0b', en: 'Star Rating', th: 'คะแนนดาว' },
     scale: { icon: '📊', color: '#10b981', en: 'Linear Scale', th: 'สเกล' },
     dropdown: { icon: '🔽', color: '#ec4899', en: 'Dropdown', th: 'รายการ' },
     date: { icon: '📅', color: '#f97316', en: 'Date', th: 'วันที่' },
     yes_no: { icon: '✅', color: '#14b8a6', en: 'Yes / No', th: 'ใช่ / ไม่' },
+    likert: { icon: '📋', color: '#6366f1', en: 'Likert Scale', th: 'ลิเคิร์ท (ความพึงพอใจ)' },
 };
 
 export const exportToCSV = (headers: string[], rows: (string | number)[][], filename: string): void => {
