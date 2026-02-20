@@ -203,7 +203,7 @@ export default function BuilderPage() {
                                         {selectedQ.type === 'scale' && ['minValue', 'maxValue', 'minLabel', 'maxLabel'].map(field => (
                                             <div key={field} className="form-group">
                                                 <label className="form-label">{t(`builder.${field}`)}</label>
-                                                <input className="form-input" type={field.includes('Value') ? 'number' : 'text'} value={(selectedQ as Record<string, string | number | undefined>)[field] ?? ''} onChange={e => updateQ(selectedQ.id, { [field]: field.includes('Value') ? parseInt(e.target.value) : e.target.value })} />
+                                                <input className="form-input" type={field.includes('Value') ? 'number' : 'text'} value={(selectedQ as unknown as Record<string, string | number | undefined>)[field] ?? ''} onChange={e => updateQ(selectedQ.id, { [field]: field.includes('Value') ? parseInt(e.target.value) : e.target.value })} />
                                             </div>
                                         ))}
                                         <label className="form-check"><input type="checkbox" checked={selectedQ.required} onChange={e => updateQ(selectedQ.id, { required: e.target.checked })} /><span>{t('builder.isRequired')}</span></label>
