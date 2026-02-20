@@ -8,6 +8,20 @@ import { QUESTION_TYPE_INFO, uid, DEFAULT_LIKERT_SCALE, DEFAULT_LIKERT_SCALE_TH 
 import * as DB from '@/lib/db';
 import * as Auth from '@/lib/auth';
 import type { Survey, Question, QuestionType } from '@/types';
+import { LuGrid, LuList, LuCheckSquare, LuType, LuAlignLeft, LuStar, LuSlidersHorizontal, LuChevronDown, LuCalendar, LuToggleRight } from 'react-icons/lu';
+
+const ICON_MAP: Record<QuestionType, React.ReactNode> = {
+    likert: <LuGrid size={16} />,
+    multiple_choice: <LuList size={16} />,
+    checkboxes: <LuCheckSquare size={16} />,
+    short_text: <LuType size={16} />,
+    long_text: <LuAlignLeft size={16} />,
+    rating: <LuStar size={16} />,
+    scale: <LuSlidersHorizontal size={16} />,
+    dropdown: <LuChevronDown size={16} />,
+    date: <LuCalendar size={16} />,
+    yes_no: <LuToggleRight size={16} />
+};
 
 const Q_TYPES: QuestionType[] = [
     'likert', 'multiple_choice', 'checkboxes', 'short_text', 'long_text',
@@ -118,8 +132,8 @@ export default function BuilderPage() {
 
         return (
             <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 14 }}>
-                    {QUESTION_TYPE_INFO[selectedQ.type].icon} {QUESTION_TYPE_INFO[selectedQ.type].en}
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {ICON_MAP[selectedQ.type]} {QUESTION_TYPE_INFO[selectedQ.type].en}
                 </div>
 
                 {/* Title */}
@@ -208,12 +222,9 @@ export default function BuilderPage() {
                         {Q_TYPES.map(type => {
                             const info = QUESTION_TYPE_INFO[type];
                             return (
-                                <button key={type} onClick={() => addQuestion(type)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, cursor: 'pointer', border: '1px solid transparent', marginBottom: 4, background: 'none', width: '100%', textAlign: 'left', color: 'var(--text-secondary)', transition: 'all 0.2s' }}
-                                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--bg-card-hover)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; }}
-                                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'none'; (e.currentTarget as HTMLElement).style.borderColor = 'transparent'; }}>
-                                    <div style={{ width: 30, height: 30, borderRadius: 6, background: `${info.color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>{info.icon}</div>
-                                    <div>
-                                        <div style={{ fontSize: 13, fontWeight: 500 }}>{lang === 'th' ? info.th : info.en}</div>
+                                <button key={type} onClick={() => addQuestion(type)} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s', width: '100%', marginBottom: 6 }}>
+                                    <div style={{ width: 28, height: 28, borderRadius: 6, background: `${info.color}20`, color: info.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{ICON_MAP[type]}</div>
+                                    <div style={{ flex: 1 }}>                                     <div style={{ fontSize: 13, fontWeight: 500 }}>{lang === 'th' ? info.th : info.en}</div>
                                         {type === 'likert' && <div style={{ fontSize: 10, color: 'var(--primary-light)' }}>5-point satisfaction table</div>}
                                     </div>
                                 </button>
@@ -271,7 +282,9 @@ export default function BuilderPage() {
                                             <div style={{ flex: 1, minWidth: 0 }}>
                                                 <div style={{ fontSize: 15, fontWeight: 600 }}>{title}{q.required && <span style={{ color: 'var(--danger)', marginLeft: 4 }}>*</span>}</div>
                                                 {desc && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{desc}</div>}
-                                                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>{info.icon} {lang === 'th' ? info.th : info.en}{q.type === 'likert' && ` · ${(q.likertRows ?? []).length} rows`}{q.hasOther && ' · +Other'}</div>
+                                                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                                                    {ICON_MAP[q.type]} {lang === 'th' ? info.th : info.en}{q.type === 'likert' && ` · ${(q.likertRows ?? []).length} rows`}{q.hasOther && ' · +Other'}
+                                                </div>
                                             </div>
                                             <div style={{ display: 'flex', gap: 6 }}>
                                                 <button onClick={e => { e.stopPropagation(); duplicateQ(q.id); }} style={{ width: 28, height: 28, borderRadius: 6, background: 'var(--bg-card-hover)', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 12 }}>⧉</button>
