@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Survey Builder | SurveyBD</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        .builder-layout {
+            display: grid;
+            grid-template-columns: 220px 1fr 300px;
+            gap: 0;
+            height: calc(100vh - var(--topbar-h));
+            overflow: hidden;
+        }
+
+        .q-palette {
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            padding: 16px 12px;
+            overflow-y: auto;
+        }
+
+        .q-palette-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 4px 8px;
+            margin-bottom: 8px;
+        }
+
+        .q-type-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid transparent;
+            margin-bottom: 4px;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+
+        .q-type-btn:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border);
+        }
+
+        .q-type-btn .icon {
+            width: 30px;
+            height: 30px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .q-type-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .builder-canvas {
+            overflow-y: auto;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .builder-header {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .builder-header input {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 22px;
+            font-weight: 800;
+            width: 100%;
+            padding: 0;
+        }
+
+        .builder-header input:focus {
+            outline: none;
+            color: var(--primary-light);
+        }
+
+        .builder-header textarea {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 14px;
+            width: 100%;
+            resize: none;
+            padding: 0;
+            margin-top: 6px;
+            font-family: inherit;
+        }
+
+        .builder-header textarea:focus {
+            outline: none;
+        }
+
+        .q-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .q-card:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .q-card.selected {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+            box-shadow: 0 0 0 1px var(--primary);
+        }
+
+        .q-card-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .q-card-num {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .q-card-title {
+            font-size: 15px;
+            font-weight: 600;
+            flex: 1;
+            line-height: 1.4;
+        }
+
+        .q-card-actions {
+            display: flex;
+            gap: 6px;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .q-action-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: var(--radius-sm);
+            background: var(--bg-card-hover);
+            border: none;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 12px;
+        }
+
+        .q-action-btn:hover {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .q-preview {
+            margin-top: 12px;
+            margin-left: 36px;
+        }
+
+        .q-preview-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .q-preview-option .dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .q-preview-option .sq {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            border: 2px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .stars-preview {
+            display: flex;
+            gap: 4px;
+        }
+
+        .star {
+            font-size: 20px;
+            color: var(--text-muted);
+        }
+
+        .required-mark {
+            color: var(--danger);
+            margin-left: 4px;
+        }
+
+        .drag-handle {
+            color: var(--text-muted);
+            cursor: grab;
+            margin-right: 4px;
+            font-size: 14px;
+        }
+
+        .drag-over {
+            border-style: dashed;
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.08);
+        }
+
+        .q-settings {
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border);
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .q-settings-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+        }
+
+        .option-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .option-row input {
+            flex: 1;
+            padding: 8px 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 13px;
+        }
+
+        .option-row input:focus {
+            outline: none;
+            border-color: var(--border-focus);
+        }
+
+        .add-option-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--primary-light);
+            font-size: 13px;
+            cursor: pointer;
+            padding: 6px 0;
+            background: none;
+            border: none;
+            font-family: inherit;
+        }
+
+        .add-option-btn:hover {
+            text-decoration: underline;
+        }
+
+        .no-selection {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            color: var(--text-muted);
+            padding: 24px;
+        }
+
+        .builder-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            height: var(--topbar-h);
+            background: rgba(7, 7, 20, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .builder-topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .builder-topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .empty-canvas {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        @media(max-width:1100px) {
+            .builder-layout {
+                grid-template-columns: 180px 1fr 260px
+            }
+        }
+
+        @media(max-width:768px) {
+            .builder-layout {
+                grid-template-columns: 1fr
+            }
+
+            .q-palette,
+            .q-settings {
+                display: none
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-layout">
+        <aside class="sidebar" id="sidebar"></aside>
+        <div class="main-content">
+            <header class="builder-topbar" id="topbar">
+                <div class="builder-topbar-left">
+                    <a href="dashboard.html" class="btn btn-ghost btn-sm"><i class="fas fa-arrow-left"></i></a>
+                    <span id="topbar-survey-title"
+                        style="font-size:15px;font-weight:700;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+                    <span id="topbar-status-badge"></span>
+                </div>
+                <div class="builder-topbar-right">
+                    <div class="lang-toggle">
+                        <button class="lang-btn active" data-lang="en" onclick="I18n.setLang('en')">EN</button>
+                        <button class="lang-btn" data-lang="th" onclick="I18n.setLang('th')">TH</button>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" onclick="togglePreview()" id="preview-btn"><i
+                            class="fas fa-eye"></i> <span data-i18n="common.preview">Preview</span></button>
+                    <button class="btn btn-secondary btn-sm" onclick="saveSurvey()"><i class="fas fa-save"></i> <span
+                            data-i18n="common.save">Save</span></button>
+                    <button class="btn btn-primary btn-sm" onclick="publishSurvey()" id="publish-btn"><i
+                            class="fas fa-rocket"></i> <span id="publish-label">Publish</span></button>
+                    <button class="icon-btn" onclick="openShareModal()" id="share-btn" style="display:none"
+                        title="Share"><i class="fas fa-share-alt"></i></button>
+                </div>
+            </header>
+            <div class="builder-layout" id="builder-layout">
+                <!-- Palette -->
+                <div class="q-palette" id="q-palette">
+                    <div class="q-palette-title" data-i18n="builder.questionTypes">Question Types</div>
+                </div>
+                <!-- Canvas -->
+                <div class="builder-canvas" id="builder-canvas">
+                    <div class="builder-header" id="survey-header">
+                        <input type="text" id="survey-title-input" placeholder="Survey Title" maxlength="200" />
+                        <textarea id="survey-desc-input" placeholder="Description (optional)" rows="2"></textarea>
+                    </div>
+                    <div id="questions-list"></div>
+                </div>
+                <!-- Settings Panel -->
+                <div class="q-settings" id="q-settings">
+                    <div id="settings-panel-content"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div class="modal-overlay" id="share-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fas fa-share-alt"></i> <span data-i18n="survey.shareLink">Share
+                        Survey</span></div>
+                <button class="modal-close" onclick="Modal.close('share-modal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="form-group">
+                <label class="form-label" data-i18n="survey.shareLink">Share Link</label>
+                <div style="display:flex;gap:8px">
+                    <input class="form-input" id="share-link-input" readonly style="font-size:12px" />
+                    <button class="btn btn-secondary btn-sm" onclick="copyShareLink()"><i
+                            class="fas fa-copy"></i></button>
+                </div>
+            </div>
+            <div class="form-group" style="text-align:center">
+                <label class="form-label" data-i18n="survey.qrCode">QR Code</label>
+                <div id="qr-container"
+                    style="display:flex;justify-content:center;padding:16px;background:white;border-radius:12px;margin-top:8px">
+                </div>
+                <button class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="downloadQR()"><i
+                        class="fas fa-download"></i> <span data-i18n="survey.downloadQR">Download QR</span></button>
+            </div>
+            <!-- Survey Settings -->
+            <div class="divider"></div>
+            <div class="q-settings-title" data-i18n="survey.settings">Survey Settings</div>
+            <div class="form-group">
+                <label class="form-check" style="margin-bottom:8px">
+                    <input type="checkbox" id="setting-multiple" onchange="updateSettings()" />
+                    <span data-i18n="survey.allowMultiple">Allow Multiple Submissions</span>
+                </label>
+                <label class="form-check" style="margin-bottom:8px">
+                    <input type="checkbox" id="setting-progress" onchange="updateSettings()" />
+                    <span data-i18n="survey.showProgress">Show Progress Bar</span>
+                </label>
+                <label class="form-check">
+                    <input type="checkbox" id="setting-anonymous" onchange="updateSettings()" />
+                    <span data-i18n="survey.anonymous">Anonymous Responses</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script src="js/i18n.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        let currentUser, survey, selectedQId = null, previewMode = false;
+        const QUESTION_TYPES = [
+            { type: 'multiple_choice', icon: '🔘', color: '#6366f1' }, { type: 'checkboxes', icon: '☑️', color: '#8b5cf6' },
+            { type: 'short_text', icon: '✏️', color: '#06b6d4' }, { type: 'long_text', icon: '📝', color: '#0ea5e9' },
+            { type: 'rating', icon: '⭐', color: '#f59e0b' }, { type: 'scale', icon: '📊', color: '#10b981' },
+            { type: 'dropdown', icon: '🔽', color: '#ec4899' }, { type: 'date', icon: '📅', color: '#f97316' },
+            { type: 'yes_no', icon: '✅', color: '#14b8a6' }
+        ];
+
+        function getTitle(key) { return I18n.t('builder.' + key); }
+
+        function initSurvey() {
+            const params = new URLSearchParams(location.search);
+            const id = params.get('id');
+            if (id) {
+                survey = DB.getSurveyById(id);
+                if (!survey) survey = newSurvey();
+            } else {
+                survey = newSurvey();
+            }
+        }
+
+        function newSurvey() {
+            return { id: Utils.uid(), title: '', titleTh: '', description: '', descriptionTh: '', creatorId: currentUser.id, status: 'draft', questions: [], settings: { allowMultiple: false, showProgress: true, anonymous: false }, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+        }
+
+        function renderPalette() {
+            const palette = document.getElementById('q-palette');
+            palette.innerHTML = `<div class="q-palette-title">${I18n.t('builder.questionTypes')}</div>`;
+            QUESTION_TYPES.forEach(qt => {
+                const info = Utils.getQuestionTypeInfo(qt.type, I18n.lang);
+                const btn = document.createElement('button');
+                btn.className = 'q-type-btn';
+                btn.innerHTML = `<div class="icon" style="background:${qt.color}22">${qt.icon}</div><span class="q-type-label">${info[I18n.lang] || info.en}</span>`;
+                btn.onclick = () => addQuestion(qt.type);
+                palette.appendChild(btn);
+            });
+        }
+
+        function addQuestion(type) {
+            const q = { id: Utils.uid(), type, title: '', titleTh: '', required: false };
+            if (['multiple_choice', 'checkboxes', 'dropdown'].includes(type)) {
+                q.options = ['Option 1', 'Option 2', 'Option 3']; q.optionsTh = ['ตัวเลือก 1', 'ตัวเลือก 2', 'ตัวเลือก 3'];
+            }
+            if (type === 'scale') { q.minValue = 1; q.maxValue = 10; q.minLabel = 'Low'; q.maxLabel = 'High'; }
+            survey.questions.push(q);
+            renderQuestions();
+            selectQuestion(q.id);
+        }
+
+        function renderQuestions() {
+            updateTopbar();
+            const list = document.getElementById('questions-list');
+            if (!survey.questions.length) {
+                list.innerHTML = `<div class="empty-canvas"><div style="font-size:48px;margin-bottom:12px">✨</div><div style="font-size:16px;font-weight:700;margin-bottom:6px">${I18n.t('builder.noQuestions')}</div><div style="font-size:13px">${I18n.t('builder.noQuestionsDesc')}</div></div>`;
+                return;
+            }
+            list.innerHTML = survey.questions.map((q, i) => {
+                const info = Utils.getQuestionTypeInfo(q.type, I18n.lang);
+                const title = (I18n.lang === 'th' && q.titleTh) ? q.titleTh : (q.title || `Question ${i + 1}`);
+                let preview = '';
+                if (['multiple_choice', 'checkboxes', 'dropdown'].includes(q.type)) {
+                    const opts = (I18n.lang === 'th' && q.optionsTh) ? q.optionsTh : q.options || [];
+                    preview = opts.slice(0, 3).map(o => `<div class="q-preview-option"><div class="${q.type === 'multiple_choice' ? 'dot' : 'sq'}"></div><span>${Utils.escapeHtml(o)}</span></div>`).join('') + (opts.length > 3 ? `<div class="q-preview-option text-xs text-muted">+${opts.length - 3} more</div>` : '');
+                } else if (q.type === 'rating') {
+                    preview = `<div class="stars-preview">${'⭐'.repeat(5)}</div>`;
+                } else if (q.type === 'scale') {
+                    preview = `<div class="text-sm text-secondary">${q.minValue || 1} (${q.minLabel || ''}) \u2192 ${q.maxValue || 10} (${q.maxLabel || ''})</div>`;
+                } else if (q.type === 'yes_no') {
+                    preview = `<div style="display:flex;gap:8px;margin-top:4px"><span class="badge badge-success">✓ ${I18n.t('common.yes')}</span><span class="badge badge-danger">✗ ${I18n.t('common.no')}</span></div>`;
+                } else if (['short_text', 'long_text'].includes(q.type)) {
+                    preview = `<div style="padding:6px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text-muted)">${q.type === 'long_text' ? 'Long answer text...' : 'Short answer...'}</div>`;
+                } else if (q.type === 'date') {
+                    preview = `<div style="padding:6px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text-muted)">📅 MM/DD/YYYY</div>`;
+                }
+                return `
+    <div class="q-card${selectedQId === q.id ? ' selected' : ''}" id="qc-${q.id}" onclick="selectQuestion('${q.id}')" draggable="true" ondragstart="dragStart(event,'${q.id}')" ondragover="dragOver(event)" ondrop="drop(event,'${q.id}')">
+      <div class="q-card-header">
+        <span class="drag-handle">⠿</span>
+        <div class="q-card-num">${i + 1}</div>
+        <div style="flex:1;min-width:0">
+          <div class="q-card-title">${Utils.escapeHtml(title)}${q.required ? `<span class="required-mark">*</span>` : ''}</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="font-size:11px;color:var(--text-muted)">${info.icon} ${info[I18n.lang] || info.en}</span></div>
+        </div>
+        <div class="q-card-actions">
+          <button class="q-action-btn" onclick="event.stopPropagation();duplicateQuestion('${q.id}')" title="Duplicate">⧉</button>
+          <button class="q-action-btn" onclick="event.stopPropagation();deleteQuestion('${q.id}')" title="Delete" style="color:var(--danger)">🗑</button>
+        </div>
+      </div>
+      ${preview ? `<div class="q-preview">${preview}</div>` : ''}
+    </div>`;
+            }).join('');
+        }
+
+        let dragSrcId = null;
+        function dragStart(e, id) { dragSrcId = id; }
+        function dragOver(e) { e.preventDefault(); }
+        function drop(e, targetId) {
+            e.preventDefault();
+            if (!dragSrcId || dragSrcId === targetId) return;
+            const src = survey.questions.findIndex(q => q.id === dragSrcId);
+            const tgt = survey.questions.findIndex(q => q.id === targetId);
+            const [removed] = survey.questions.splice(src, 1);
+            survey.questions.splice(tgt, 0, removed);
+            dragSrcId = null; renderQuestions();
+        }
+
+        function selectQuestion(id) {
+            selectedQId = id;
+            renderQuestions();
+            renderSettingsPanel();
+        }
+
+        function renderSettingsPanel() {
+            const panel = document.getElementById('settings-panel-content');
+            const q = survey.questions.find(q => q.id === selectedQId);
+            if (!q) {
+                panel.innerHTML = `<div class="no-selection"><div style="font-size:40px;margin-bottom:12px">👆</div><div style="font-size:14px;font-weight:600">${I18n.t('builder.clickToEdit')}</div></div>`;
+                return;
+            }
+            let optionsHtml = '';
+            if (['multiple_choice', 'checkboxes', 'dropdown'].includes(q.type)) {
+                const opts = q.options || [];
+                const optsTh = q.optionsTh || [];
+                optionsHtml = `
+    <div class="form-group">
+      <label class="form-label">${I18n.t('builder.options')} (EN)</label>
+      ${opts.map((o, i) => `<div class="option-row"><input value="${Utils.escapeHtml(o)}" oninput="updateOption(${i},'en',this.value)" placeholder="Option ${i + 1}"/><button onclick="removeOption(${i})" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:16px">×</button></div>`).join('')}
+      <button class="add-option-btn" onclick="addOption()"><i class="fas fa-plus"></i> ${I18n.t('builder.addOption')}</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">${I18n.t('builder.options')} (TH)</label>
+      ${optsTh.map((o, i) => `<div class="option-row"><input value="${Utils.escapeHtml(o)}" oninput="updateOption(${i},'th',this.value)" placeholder="ตัวเลือก ${i + 1}"/></div>`).join('')}
+    </div>`;
+            } else if (q.type === 'scale') {
+                optionsHtml = `
+    <div class="form-group"><label class="form-label">${I18n.t('builder.minValue')}</label><input class="form-input" type="number" value="${q.minValue || 1}" oninput="updateQField('minValue',parseInt(this.value))"/></div>
+    <div class="form-group"><label class="form-label">${I18n.t('builder.maxValue')}</label><input class="form-input" type="number" value="${q.maxValue || 10}" oninput="updateQField('maxValue',parseInt(this.value))"/></div>
+    <div class="form-group"><label class="form-label">${I18n.t('builder.minLabel')}</label><input class="form-input" value="${Utils.escapeHtml(q.minLabel || '')}" oninput="updateQField('minLabel',this.value)"/></div>
+    <div class="form-group"><label class="form-label">${I18n.t('builder.maxLabel')}</label><input class="form-input" value="${Utils.escapeHtml(q.maxLabel || '')}" oninput="updateQField('maxLabel',this.value)"/></div>`;
+            }
+
+            panel.innerHTML = `
+  <div class="q-settings-title">${I18n.t('builder.questionSettings')}</div>
+  <div class="form-group">
+    <label class="form-label">${I18n.t('builder.questionTitle')} (EN)</label>
+    <textarea class="form-input" rows="2" oninput="updateQField('title',this.value)">${Utils.escapeHtml(q.title || '')}</textarea>
+  </div>
+  <div class="form-group">
+    <label class="form-label">${I18n.t('builder.questionTitle')} (TH)</label>
+    <textarea class="form-input" rows="2" oninput="updateQField('titleTh',this.value)">${Utils.escapeHtml(q.titleTh || '')}</textarea>
+  </div>
+  ${optionsHtml}
+  <div class="form-group">
+    <label class="form-check">
+      <input type="checkbox" ${q.required ? 'checked' : ''} onchange="updateQField('required',this.checked)"/>
+      <span>${I18n.t('builder.isRequired')}</span>
+    </label>
+  </div>
+  <div class="divider"></div>
+  <button class="btn btn-danger btn-sm w-full" onclick="deleteQuestion('${q.id}')"><i class="fas fa-trash"></i> ${I18n.t('common.delete')} Question</button>`;
+        }
+
+        function updateQField(field, val) {
+            const q = survey.questions.find(q => q.id === selectedQId);
+            if (!q) return;
+            q[field] = val;
+            renderQuestions();
+            // Keep panel focused
+        }
+
+        function updateOption(idx, lang, val) {
+            const q = survey.questions.find(q => q.id === selectedQId);
+            if (!q) return;
+            if (lang === 'en') { if (!q.options) q.options = []; q.options[idx] = val; }
+            else { if (!q.optionsTh) q.optionsTh = []; q.optionsTh[idx] = val; }
+        }
+
+        function addOption() {
+            const q = survey.questions.find(q => q.id === selectedQId);
+            if (!q) return;
+            if (!q.options) q.options = [];
+            if (!q.optionsTh) q.optionsTh = [];
+            q.options.push(`Option ${q.options.length + 1}`);
+            q.optionsTh.push(`ตัวเลือก ${q.optionsTh.length + 1}`);
+            renderSettingsPanel();
+        }
+
+        function removeOption(idx) {
+            const q = survey.questions.find(q => q.id === selectedQId);
+            if (!q || q.options.length <= 1) return;
+            q.options.splice(idx, 1); q.optionsTh.splice(idx, 1);
+            renderSettingsPanel();
+        }
+
+        function deleteQuestion(id) {
+            survey.questions = survey.questions.filter(q => q.id !== id);
+            if (selectedQId === id) { selectedQId = null; renderSettingsPanel(); }
+            renderQuestions();
+        }
+
+        function duplicateQuestion(id) {
+            const q = survey.questions.find(q => q.id === id);
+            if (!q) return;
+            const copy = JSON.parse(JSON.stringify(q));
+            copy.id = Utils.uid();
+            const idx = survey.questions.findIndex(q => q.id === id);
+            survey.questions.splice(idx + 1, 0, copy);
+            renderQuestions();
+            Toast.show('Question duplicated');
+        }
+
+        function saveSurvey() {
+            survey.title = document.getElementById('survey-title-input').value || I18n.t('builder.untitled');
+            survey.description = document.getElementById('survey-desc-input').value;
+            survey.updatedAt = new Date().toISOString();
+            DB.saveSurvey(survey);
+            Toast.show(I18n.t('builder.saveSuccess'));
+            updateTopbar();
+        }
+
+        function publishSurvey() {
+            if (survey.status === 'published') {
+                Modal.confirm(I18n.t('survey.closeConfirm'), () => { survey.status = 'closed'; saveSurvey(); updateTopbar(); }, I18n.lang);
+            } else {
+                if (!survey.questions.length) { Toast.show('Add at least one question before publishing!', 'warning'); return; }
+                Modal.confirm(I18n.t('survey.publishConfirm'), () => {
+                    survey.status = 'published'; survey.publishedAt = new Date().toISOString();
+                    saveSurvey(); updateTopbar();
+                    document.getElementById('share-btn').style.display = '';
+                    Toast.show(I18n.t('builder.publishSuccess'));
+                }, I18n.lang);
+            }
+        }
+
+        function updateTopbar() {
+            const title = survey.title || I18n.t('builder.untitled');
+            const el = document.getElementById('topbar-survey-title');
+            if (el) el.textContent = title;
+            const badge = document.getElementById('topbar-status-badge');
+            if (badge) badge.innerHTML = Utils.getSurveyStatusBadge(survey.status, I18n.lang);
+            const pubBtn = document.getElementById('publish-label');
+            if (pubBtn) pubBtn.textContent = survey.status === 'published' ? I18n.t('common.close') : I18n.t('common.publish');
+            const shareBtn = document.getElementById('share-btn');
+            if (shareBtn) shareBtn.style.display = survey.status === 'published' ? '' : 'none';
+        }
+
+        function updateSettings() {
+            survey.settings.allowMultiple = document.getElementById('setting-multiple').checked;
+            survey.settings.showProgress = document.getElementById('setting-progress').checked;
+            survey.settings.anonymous = document.getElementById('setting-anonymous').checked;
+        }
+
+        function openShareModal() {
+            const surveyUrl = `${location.origin}${location.pathname.replace('builder.html', 'survey.html')}?id=${survey.id}`;
+            document.getElementById('share-link-input').value = surveyUrl;
+            document.getElementById('setting-multiple').checked = survey.settings?.allowMultiple || false;
+            document.getElementById('setting-progress').checked = survey.settings?.showProgress !== false;
+            document.getElementById('setting-anonymous').checked = survey.settings?.anonymous || false;
+            const qrEl = document.getElementById('qr-container');
+            qrEl.innerHTML = '';
+            new QRCode(qrEl, { text: surveyUrl, width: 180, height: 180 });
+            Modal.open('share-modal');
+        }
+
+        function copyShareLink() {
+            const link = document.getElementById('share-link-input').value;
+            Utils.copyText(link);
+            Toast.show(I18n.t('common.copied'));
+        }
+
+        function downloadQR() {
+            const canvas = document.querySelector('#qr-container canvas');
+            if (!canvas) return;
+            const a = document.createElement('a');
+            a.download = `survey-qr-${survey.id}.png`;
+            a.href = canvas.toDataURL();
+            a.click();
+        }
+
+        function togglePreview() {
+            previewMode = !previewMode;
+            document.getElementById('q-palette').style.display = previewMode ? 'none' : '';
+            document.getElementById('q-settings').style.display = previewMode ? 'none' : '';
+            document.getElementById('builder-layout').style.gridTemplateColumns = previewMode ? '1fr' : '';
+            const btn = document.getElementById('preview-btn');
+            btn.innerHTML = previewMode ? `<i class="fas fa-edit"></i> ${I18n.t('builder.editMode')}` : `<i class="fas fa-eye"></i> ${I18n.t('common.preview')}`;
+        }
+
+        function onLangChange() {
+            if (!currentUser) return;
+            renderPalette(); renderQuestions(); renderSettingsPanel(); updateTopbar();
+            document.getElementById('survey-title-input').placeholder = I18n.t('survey.title');
+            document.getElementById('survey-desc-input').placeholder = I18n.t('survey.description');
+        }
+
+        window.onload = () => {
+            currentUser = Auth.guard();
+            if (!currentUser) return;
+            if (!Auth.can(currentUser, 'create_survey')) { window.location.href = 'dashboard.html'; return; }
+            I18n.init();
+            Components.init('builder');
+            initSurvey();
+            document.getElementById('survey-title-input').value = survey.title || '';
+            document.getElementById('survey-desc-input').value = survey.description || '';
+            renderPalette(); renderQuestions(); renderSettingsPanel(); updateTopbar();
+        };
+    </script>
+</body>
+
+</html>
