@@ -212,12 +212,21 @@ export default function SurveyPage() {
                         </div>
                     </div>
                 )}
-                {q.type === 'dropdown' && (
-                    <select className="form-input" value={(answers[q.id] as string) ?? ''} onChange={e => setAnswer(q.id, e.target.value)}>
+                {q.type === 'dropdown' && (<>
+                    <select className="form-input" value={(answers[q.id] as string) === '__other__' ? '__other__' : ((answers[q.id] as string) ?? '')} onChange={e => {
+                        if (e.target.value !== '__other__') setAnswer(q.id, e.target.value);
+                        else setAnswer(q.id, '__other__');
+                    }}>
                         <option value="">-- Select --</option>
                         {options.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
+                        {q.hasOther && <option value="__other__">Other (please specify)</option>}
                     </select>
-                )}
+                    {q.hasOther && answers[q.id] === '__other__' && (
+                        <div style={{ marginTop: 8 }}>
+                            <input type="text" value={otherText[q.id] ?? ''} onChange={e => { setOtherText(o => ({ ...o, [q.id]: e.target.value })); setAnswer(q.id, '__other__'); }} placeholder="Please specify..." style={{ width: '100%', background: 'none', border: 'none', borderBottom: '1px solid var(--border)', color: 'var(--text-primary)', outline: 'none', fontSize: 14, padding: '6px 0' }} />
+                        </div>
+                    )}
+                </>)}
                 {q.type === 'date' && <input className="form-input" type="date" value={(answers[q.id] as string) ?? ''} onChange={e => setAnswer(q.id, e.target.value)} />}
                 {q.type === 'yes_no' && (
                     <div style={{ display: 'flex', gap: 12 }}>
