@@ -5,14 +5,13 @@ import type { GetStaticPaths, GetStaticProps } from 'next';
 import { useApp } from '@/contexts/AppContext';
 import { useToast, Toast } from '@/components/ui';
 import * as DB from '@/lib/db';
-import { uid } from '@/lib/utils';
+import { uid, DEFAULT_LIKERT_SCALE, DEFAULT_LIKERT_SCALE_TH } from '@/lib/utils';
 import type { Survey, Question, AnswerValue } from '@/types';
 
-// Required for Next.js dynamic routes
-export const getStaticPaths: GetStaticPaths = async () => ({
-    paths: [], fallback: 'blocking',
-});
+export const getStaticPaths: GetStaticPaths = async () => ({ paths: [], fallback: 'blocking' });
 export const getStaticProps: GetStaticProps = async () => ({ props: {} });
+
+type LikertAns = Record<string, string>;
 
 export default function SurveyPage() {
     const { t, lang, ready } = useApp();
@@ -22,6 +21,7 @@ export default function SurveyPage() {
     const [survey, setSurvey] = useState<Survey | null>(null);
     const [notFound, setNotFound] = useState(false);
     const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
+    const [otherText, setOtherText] = useState<Record<string, string>>({});
     const [errors, setErrors] = useState<Record<string, boolean>>({});
     const [submitted, setSubmitted] = useState(false);
     const [startTime] = useState(Date.now());
@@ -34,16 +34,12 @@ export default function SurveyPage() {
     }, [ready, id]);
 
     if (!ready || router.isFallback) return null;
-
     if (notFound) return (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', flexDirection: 'column', gap: 12, color: 'var(--text-muted)', background: 'var(--bg-primary)' }}>
-            <div style={{ fontSize: 64 }}>🔍</div>
-            <div style={{ fontSize: 20, fontWeight: 700 }}>{t('survey.surveyNotFound')}</div>
+            <div style={{ fontSize: 64 }}>🔍</div><div style={{ fontSize: 20, fontWeight: 700 }}>{t('survey.surveyNotFound')}</div>
         </div>
     );
-
     if (!survey) return null;
-
     if (survey.status !== 'published') return (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', flexDirection: 'column', gap: 12, background: 'var(--bg-primary)', color: 'var(--text-muted)' }}>
             <div style={{ fontSize: 64 }}>🔒</div>
@@ -66,14 +62,30 @@ export default function SurveyPage() {
         survey.questions.forEach(q => {
             if (q.required) {
                 const ans = answers[q.id];
-                if (!ans || (Array.isArray(ans) && ans.length === 0) || ans === '') { newErrors[q.id] = true; valid = false; }
+                if (q.type === 'likert') {
+                    const rows = q.likertRows ?? [];
+                    const likertAns = (ans as LikertAns) ?? {};
+                    if (rows.some(r => !likertAns[r])) { newErrors[q.id] = true; valid = false; }
+                } else if (!ans || (Array.isArray(ans) && (ans as string[]).length === 0) || ans === '') {
+                    newErrors[q.id] = true; valid = false;
+                }
             }
         });
         setErrors(newErrors);
         if (!valid) { toast.show(t('survey.fillRequired'), 'warning'); return; }
+        // Merge in "Other" text
+        const finalAnswers = { ...answers };
+        Object.entries(otherText).forEach(([qId, txt]) => {
+            if (txt) {
+                const existing = finalAnswers[qId];
+                if (Array.isArray(existing)) finalAnswers[qId] = [...(existing as string[]), `Other: ${txt}`];
+                else finalAnswers[qId] = `Other: ${txt}`;
+            }
+        });
         DB.saveResponse({
             id: uid(), surveyId: survey.id, respondentId: null, respondentName: 'Anonymous',
-            answers, submittedAt: new Date().toISOString(), completionTime: Math.round((Date.now() - startTime) / 1000),
+            answers: finalAnswers, submittedAt: new Date().toISOString(),
+            completionTime: Math.round((Date.now() - startTime) / 1000),
         });
         setSubmitted(true);
     };
@@ -83,30 +95,104 @@ export default function SurveyPage() {
 
     const renderQuestion = (q: Question, i: number) => {
         const qtitle = lang === 'th' && q.titleTh ? q.titleTh : q.title;
+        const qdesc = lang === 'th' && q.descriptionTh ? q.descriptionTh : q.description;
         const options = (lang === 'th' && q.optionsTh ? q.optionsTh : q.options) ?? [];
         const err = errors[q.id];
+
+        const scale = lang === 'th' ? (q.likertScaleTh ?? DEFAULT_LIKERT_SCALE_TH) : (q.likertScale ?? DEFAULT_LIKERT_SCALE);
+        const rows = lang === 'th' ? (q.likertRowsTh ?? q.likertRows ?? []) : (q.likertRows ?? []);
+
         return (
             <div key={q.id} style={{ background: 'var(--bg-card)', border: `1px solid ${err ? 'var(--danger)' : 'var(--border)'}`, borderRadius: 12, padding: 20, marginBottom: 16 }}>
-                <div style={{ display: 'flex', gap: 10, marginBottom: 14, alignItems: 'flex-start' }}>
+                {/* Question header */}
+                <div style={{ display: 'flex', gap: 10, marginBottom: qdesc ? 4 : 14, alignItems: 'flex-start' }}>
                     <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0, marginTop: 1 }}>{i + 1}</div>
-                    <div>
+                    <div style={{ flex: 1 }}>
                         <div style={{ fontWeight: 600, fontSize: 15 }}>{qtitle}{q.required && <span style={{ color: 'var(--danger)', marginLeft: 4 }}>*</span>}</div>
-                        {err && <div style={{ fontSize: 12, color: 'var(--danger)', marginTop: 4 }}>⚠ {t('common.required')}</div>}
+                        {err && <div style={{ fontSize: 12, color: 'var(--danger)', marginTop: 2 }}>⚠ {t('common.required')}</div>}
                     </div>
                 </div>
-                {q.type === 'multiple_choice' && options.map((opt: string) => (
-                    <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, border: `1px solid ${answers[q.id] === opt ? 'var(--primary)' : 'var(--border)'}`, background: answers[q.id] === opt ? 'rgba(99,102,241,0.1)' : 'var(--bg-card)', marginBottom: 8, cursor: 'pointer' }}>
-                        <input type="radio" name={q.id} value={opt} checked={answers[q.id] === opt} onChange={() => setAnswer(q.id, opt)} style={{ accentColor: 'var(--primary)' }} />{opt}
-                    </label>
-                ))}
-                {q.type === 'checkboxes' && options.map((opt: string) => {
-                    const checked = Array.isArray(answers[q.id]) && (answers[q.id] as string[]).includes(opt);
-                    return (
-                        <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, border: `1px solid ${checked ? 'var(--primary)' : 'var(--border)'}`, background: checked ? 'rgba(99,102,241,0.1)' : 'var(--bg-card)', marginBottom: 8, cursor: 'pointer' }}>
-                            <input type="checkbox" checked={checked} onChange={e => { const arr = Array.isArray(answers[q.id]) ? [...(answers[q.id] as string[])] : []; if (e.target.checked) arr.push(opt); else arr.splice(arr.indexOf(opt), 1); setAnswer(q.id, arr); }} style={{ accentColor: 'var(--primary)' }} />{opt}
+                {/* Description label */}
+                {qdesc && (
+                    <div style={{ marginLeft: 36, marginBottom: 14, fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic', lineHeight: 1.5, padding: '8px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: 6, borderLeft: '3px solid var(--primary)' }}>
+                        {qdesc}
+                    </div>
+                )}
+
+                {/* ── Likert Scale ── */}
+                {q.type === 'likert' && (
+                    <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                            <thead>
+                                <tr>
+                                    <th style={{ textAlign: 'left', padding: '8px 12px', color: 'var(--text-muted)', fontWeight: 600, fontSize: 12, borderBottom: '1px solid var(--border)', minWidth: 180 }}>Statement</th>
+                                    {scale.map((s, si) => (
+                                        <th key={si} style={{ textAlign: 'center', padding: '8px 10px', color: 'var(--primary-light)', fontWeight: 600, fontSize: 11, borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap', minWidth: 72 }}>{s}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {rows.map((row, ri) => {
+                                    const likertAns = (answers[q.id] as LikertAns) ?? {};
+                                    return (
+                                        <tr key={ri} style={{ background: ri % 2 === 0 ? 'rgba(255,255,255,0.01)' : 'rgba(255,255,255,0.03)' }}>
+                                            <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{row}</td>
+                                            {scale.map((s, si) => (
+                                                <td key={si} style={{ textAlign: 'center', padding: '10px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                                                    <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                        <input type="radio" name={`${q.id}_${ri}`} value={s}
+                                                            checked={likertAns[row] === s}
+                                                            onChange={() => {
+                                                                const updated: LikertAns = { ...likertAns, [row]: s };
+                                                                setAnswer(q.id, updated as unknown as AnswerValue);
+                                                            }}
+                                                            style={{ width: 18, height: 18, accentColor: 'var(--primary)', cursor: 'pointer' }} />
+                                                    </label>
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+
+                {/* ── Multiple Choice ── */}
+                {q.type === 'multiple_choice' && (<>
+                    {options.map((opt: string) => (
+                        <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, border: `1px solid ${answers[q.id] === opt ? 'var(--primary)' : 'var(--border)'}`, background: answers[q.id] === opt ? 'rgba(99,102,241,0.1)' : 'var(--bg-card)', marginBottom: 8, cursor: 'pointer' }}>
+                            <input type="radio" name={q.id} value={opt} checked={answers[q.id] === opt} onChange={() => setAnswer(q.id, opt)} style={{ accentColor: 'var(--primary)' }} />{opt}
                         </label>
-                    );
-                })}
+                    ))}
+                    {q.hasOther && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, border: `1px solid ${answers[q.id] === '__other__' ? 'var(--primary)' : 'var(--border)'}`, marginBottom: 8 }}>
+                            <input type="radio" name={q.id} value="__other__" checked={answers[q.id] === '__other__'} onChange={() => setAnswer(q.id, '__other__')} style={{ accentColor: 'var(--primary)', flexShrink: 0 }} />
+                            <span style={{ flexShrink: 0 }}>Other:</span>
+                            <input type="text" value={otherText[q.id] ?? ''} onChange={e => { setOtherText(o => ({ ...o, [q.id]: e.target.value })); setAnswer(q.id, '__other__'); }} placeholder="Please specify..." style={{ flex: 1, background: 'none', border: 'none', borderBottom: '1px solid var(--border)', color: 'var(--text-primary)', outline: 'none', fontSize: 14, padding: '2px 0' }} />
+                        </div>
+                    )}
+                </>)}
+
+                {/* ── Checkboxes ── */}
+                {q.type === 'checkboxes' && (<>
+                    {options.map((opt: string) => {
+                        const checked = Array.isArray(answers[q.id]) && (answers[q.id] as string[]).includes(opt);
+                        return (
+                            <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, border: `1px solid ${checked ? 'var(--primary)' : 'var(--border)'}`, background: checked ? 'rgba(99,102,241,0.1)' : 'var(--bg-card)', marginBottom: 8, cursor: 'pointer' }}>
+                                <input type="checkbox" checked={checked} onChange={ev => { const arr = Array.isArray(answers[q.id]) ? [...(answers[q.id] as string[])] : []; if (ev.target.checked) arr.push(opt); else arr.splice(arr.indexOf(opt), 1); setAnswer(q.id, arr); }} style={{ accentColor: 'var(--primary)' }} />{opt}
+                            </label>
+                        );
+                    })}
+                    {q.hasOther && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', marginBottom: 8 }}>
+                            <input type="checkbox" checked={!!(otherText[q.id])} onChange={e => { if (!e.target.checked) setOtherText(o => ({ ...o, [q.id]: '' })); }} style={{ accentColor: 'var(--primary)', flexShrink: 0 }} />
+                            <span style={{ flexShrink: 0 }}>Other:</span>
+                            <input type="text" value={otherText[q.id] ?? ''} onChange={e => setOtherText(o => ({ ...o, [q.id]: e.target.value }))} placeholder="Please specify..." style={{ flex: 1, background: 'none', border: 'none', borderBottom: '1px solid var(--border)', color: 'var(--text-primary)', outline: 'none', fontSize: 14, padding: '2px 0' }} />
+                        </div>
+                    )}
+                </>)}
+
                 {q.type === 'short_text' && <input className="form-input" value={(answers[q.id] as string) ?? ''} onChange={e => setAnswer(q.id, e.target.value)} placeholder="Your answer..." />}
                 {q.type === 'long_text' && <textarea className="form-input" rows={4} value={(answers[q.id] as string) ?? ''} onChange={e => setAnswer(q.id, e.target.value)} placeholder="Your answer..." style={{ resize: 'vertical' }} />}
                 {q.type === 'rating' && (
@@ -161,26 +247,24 @@ export default function SurveyPage() {
                             <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 8 }}>{t('survey.thankYou')}</h1>
                             <p style={{ color: 'var(--text-secondary)' }}>{t('survey.thankYouDesc')}</p>
                         </div>
-                    ) : (
-                        <>
-                            {survey.settings.showProgress && (
-                                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', marginBottom: 16, height: 6 }}>
-                                    <div style={{ height: '100%', background: 'var(--gradient)', width: `${progress}%`, transition: 'width 0.3s ease' }} />
-                                </div>
-                            )}
-                            <div className="card" style={{ marginBottom: 20, padding: 28 }}>
-                                <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 8 }}>{title}</h1>
-                                {desc && <p style={{ color: 'var(--text-secondary)', fontSize: 15 }}>{desc}</p>}
-                                <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 12 }}>{survey.questions.length} {t('survey.questions')}</div>
+                    ) : (<>
+                        {survey.settings.showProgress && (
+                            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', marginBottom: 16, height: 6 }}>
+                                <div style={{ height: '100%', background: 'var(--gradient)', width: `${progress}%`, transition: 'width 0.3s ease' }} />
                             </div>
-                            <form onSubmit={handleSubmit}>
-                                {survey.questions.map((q, i) => renderQuestion(q, i))}
-                                <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: 16, fontSize: 16, fontWeight: 700 }}>
-                                    🚀 {t('survey.submitResponse')}
-                                </button>
-                            </form>
-                        </>
-                    )}
+                        )}
+                        <div className="card" style={{ marginBottom: 20, padding: 28 }}>
+                            <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 8 }}>{title}</h1>
+                            {desc && <p style={{ color: 'var(--text-secondary)', fontSize: 15 }}>{desc}</p>}
+                            <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 12 }}>{survey.questions.length} {t('survey.questions')}</div>
+                        </div>
+                        <form onSubmit={handleSubmit}>
+                            {survey.questions.map((q, i) => renderQuestion(q, i))}
+                            <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: 16, fontSize: 16, fontWeight: 700 }}>
+                                🚀 {t('survey.submitResponse')}
+                            </button>
+                        </form>
+                    </>)}
                 </div>
                 <Toast messages={toast.messages} remove={toast.remove} />
             </div>
