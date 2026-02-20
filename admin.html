@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>User Management | SurveyBD</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        .role-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            transition: var(--transition);
+        }
+
+        .role-card:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .role-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .role-name {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .role-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+
+        .role-count {
+            margin-left: auto;
+            font-size: 24px;
+            font-weight: 800;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .avatar-lg {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .user-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .user-status.active {
+            background: var(--success);
+            box-shadow: 0 0 6px var(--success);
+        }
+
+        .user-status.inactive {
+            background: var(--text-muted);
+        }
+
+        .role-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .role-option {
+            padding: 10px 8px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+        }
+
+        .role-option:hover {
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+
+        .role-option.selected {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .role-option-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .role-option-label {
+            font-size: 12px;
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-layout">
+        <aside class="sidebar" id="sidebar"></aside>
+        <div class="main-content">
+            <header class="topbar" id="topbar"></header>
+            <main class="page-content fade-in" id="main"></main>
+        </div>
+    </div>
+
+    <!-- Add/Edit User Modal -->
+    <div class="modal-overlay" id="user-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-title">Add User</div>
+                <button class="modal-close" onclick="Modal.close('user-modal')"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="user-form" onsubmit="saveUser(event)">
+                <div class="form-group">
+                    <label class="form-label" data-i18n="admin.name">Full Name</label>
+                    <input class="form-input" id="u-name" required maxlength="100" placeholder="Full Name" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" data-i18n="admin.email">Email</label>
+                    <input class="form-input" id="u-email" type="email" required placeholder="email@example.com" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" data-i18n="admin.role">Role</label>
+                    <div class="role-selector" id="role-selector">
+                        <div class="role-option selected" data-role="admin" onclick="selectRole('admin')">
+                            <div class="role-option-icon">🔑</div>
+                            <div class="role-option-label" data-i18n="admin.roles.admin">Admin</div>
+                        </div>
+                        <div class="role-option" data-role="creator" onclick="selectRole('creator')">
+                            <div class="role-option-icon">✏️</div>
+                            <div class="role-option-label" data-i18n="admin.roles.creator">Creator</div>
+                        </div>
+                        <div class="role-option" data-role="respondent" onclick="selectRole('respondent')">
+                            <div class="role-option-icon">👤</div>
+                            <div class="role-option-label" data-i18n="admin.roles.respondent">Respondent</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="u-role" value="admin" />
+                </div>
+                <div class="form-group" id="pw-group">
+                    <label class="form-label" data-i18n="admin.password">Password</label>
+                    <input class="form-input" id="u-password" type="password" placeholder="Min 6 characters" />
+                </div>
+                <div class="form-group" id="pw2-group">
+                    <label class="form-label" data-i18n="admin.confirmPw">Confirm Password</label>
+                    <input class="form-input" id="u-password2" type="password" placeholder="Repeat password" />
+                </div>
+                <div class="form-group">
+                    <label class="form-check">
+                        <input type="checkbox" id="u-active" checked />
+                        <span data-i18n="common.active">Active</span>
+                    </label>
+                </div>
+                <div id="form-error" class="error-msg"
+                    style="display:none;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:8px;padding:10px;color:#fca5a5;font-size:13px;margin-bottom:12px">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="Modal.close('user-modal')"
+                        data-i18n="common.cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="save-user-btn"><i class="fas fa-save"></i> <span
+                            data-i18n="common.save">Save</span></button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+    <script src="js/i18n.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        let currentUser, editingUserId = null;
+
+        function onLangChange() { if (currentUser) renderPage(); }
+
+        function renderPage() {
+            const lang = I18n.lang;
+            const users = DB.getUsers();
+            const surveys = DB.getSurveys();
+            const roleColors = { admin: 'rgba(239,68,68,0.15)', creator: 'rgba(99,102,241,0.15)', respondent: 'rgba(16,185,129,0.15)' };
+            const roleIcons = { admin: '🔑', creator: '✏️', respondent: '👤' };
+
+            const roleSummary = [
+                { role: 'admin', label: I18n.t('admin.roles.admin'), desc: I18n.t('admin.roleDesc.admin'), icon: '🔑', color: 'rgba(239,68,68,0.15)' },
+                { role: 'creator', label: I18n.t('admin.roles.creator'), desc: I18n.t('admin.roleDesc.creator'), icon: '✏️', color: 'rgba(99,102,241,0.15)' },
+                { role: 'respondent', label: I18n.t('admin.roles.respondent'), desc: I18n.t('admin.roleDesc.respondent'), icon: '👤', color: 'rgba(16,185,129,0.15)' }
+            ];
+
+            const roleCardsHtml = roleSummary.map(r => `
+  <div class="role-card">
+    <div class="role-icon" style="background:${r.color}">${r.icon}</div>
+    <div><div class="role-name">${r.label}</div><div class="role-desc">${r.desc}</div></div>
+    <div class="role-count">${users.filter(u => u.role === r.role).length}</div>
+  </div>`).join('');
+
+            const [searchVal] = [document.getElementById('user-search')?.value || ''];
+            const filtered = users.filter(u => !searchVal || u.name.toLowerCase().includes(searchVal.toLowerCase()) || u.email.toLowerCase().includes(searchVal.toLowerCase()));
+
+            const tableHtml = filtered.length ? `
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>User</th><th>${I18n.t('admin.email')}</th><th>${I18n.t('admin.role')}</th>
+        <th>Surveys</th><th>${I18n.t('common.status')}</th><th>${I18n.t('common.createdAt')}</th><th>${I18n.t('common.actions')}</th>
+      </tr></thead>
+      <tbody>${filtered.map(u => {
+                const sCount = surveys.filter(s => s.creatorId === u.id).length;
+                const isSelf = u.id === currentUser.id;
+                return `<tr>
+          <td><div style="display:flex;align-items:center;gap:12px">
+            <div class="avatar-lg" style="background:${roleColors[u.role]}">${u.name[0].toUpperCase()}</div>
+            <div><div style="font-weight:700">${Utils.escapeHtml(u.name)}</div>${isSelf ? `<div class="text-xs" style="color:var(--primary-light)">● You</div>` : ''}</div>
+          </div></td>
+          <td class="text-secondary">${Utils.escapeHtml(u.email)}</td>
+          <td>${Utils.getRoleBadge(u.role, lang)}</td>
+          <td><span class="badge badge-muted">${sCount}</span></td>
+          <td><span class="user-status ${u.isActive ? 'active' : 'inactive'}"></span> ${u.isActive ? I18n.t('common.active') : I18n.t('common.inactive')}</td>
+          <td class="text-muted text-sm">${Utils.formatDate(u.createdAt, lang)}</td>
+          <td><div style="display:flex;gap:6px">
+            <button class="btn btn-secondary btn-sm" onclick="openEditUser('${u.id}')"><i class="fas fa-edit"></i></button>
+            ${!isSelf ? `<button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')"><i class="fas fa-trash"></i></button>` : ''}
+          </div></td>
+        </tr>`;
+            }).join('')}</tbody>
+    </table>
+  </div>` : `<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">${I18n.t('admin.noUsers')}</div></div>`;
+
+            document.getElementById('main').innerHTML = `
+  <div class="page-header">
+    <div>
+      <div class="page-title">${I18n.t('admin.title')}</div>
+      <div class="page-desc">${users.length} total users</div>
+    </div>
+    <button class="btn btn-primary" onclick="openAddUser()"><i class="fas fa-plus"></i> ${I18n.t('admin.addUser')}</button>
+  </div>
+  <div class="grid grid-3" style="margin-bottom:24px">${roleCardsHtml}</div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">All Users</div>
+      <div class="search-bar" style="min-width:200px"><i class="fas fa-search"></i><input type="text" id="user-search" placeholder="${I18n.t('common.search')}" oninput="renderPage()"/></div>
+    </div>
+    ${tableHtml}
+  </div>`;
+
+            const titleEl = document.querySelector('.topbar-title');
+            if (titleEl) titleEl.textContent = I18n.t('admin.title');
+        }
+
+        function selectRole(role) {
+            document.getElementById('u-role').value = role;
+            document.querySelectorAll('.role-option').forEach(el => el.classList.toggle('selected', el.dataset.role === role));
+        }
+
+        function openAddUser() {
+            editingUserId = null;
+            document.getElementById('modal-title').textContent = I18n.t('admin.addUser');
+            document.getElementById('user-form').reset();
+            selectRole('respondent');
+            document.getElementById('pw-group').style.display = '';
+            document.getElementById('pw2-group').style.display = '';
+            document.getElementById('u-password').required = true;
+            document.getElementById('form-error').style.display = 'none';
+            Modal.open('user-modal');
+        }
+
+        function openEditUser(id) {
+            editingUserId = id;
+            const u = DB.getUserById(id);
+            if (!u) return;
+            document.getElementById('modal-title').textContent = I18n.t('admin.editUser');
+            document.getElementById('u-name').value = u.name;
+            document.getElementById('u-email').value = u.email;
+            document.getElementById('u-active').checked = u.isActive;
+            selectRole(u.role);
+            document.getElementById('pw-group').style.display = '';
+            document.getElementById('pw2-group').style.display = '';
+            document.getElementById('u-password').required = false;
+            document.getElementById('u-password').placeholder = 'Leave blank to keep current';
+            document.getElementById('form-error').style.display = 'none';
+            Modal.open('user-modal');
+        }
+
+        function saveUser(e) {
+            e.preventDefault();
+            const lang = I18n.lang;
+            const name = document.getElementById('u-name').value.trim();
+            const email = document.getElementById('u-email').value.trim().toLowerCase();
+            const role = document.getElementById('u-role').value;
+            const pw = document.getElementById('u-password').value;
+            const pw2 = document.getElementById('u-password2').value;
+            const isActive = document.getElementById('u-active').checked;
+            const errEl = document.getElementById('form-error');
+
+            const users = DB.getUsers();
+            if (pw && pw !== pw2) { errEl.textContent = I18n.t('admin.pwMismatch'); errEl.style.display = 'block'; return; }
+            const emailExists = users.some(u => u.email === email && u.id !== editingUserId);
+            if (emailExists) { errEl.textContent = I18n.t('admin.emailExists'); errEl.style.display = 'block'; return; }
+            errEl.style.display = 'none';
+
+            if (editingUserId) {
+                const idx = users.findIndex(u => u.id === editingUserId);
+                if (idx >= 0) {
+                    users[idx] = { ...users[idx], name, email, role, isActive };
+                    if (pw) users[idx].password = pw;
+                    DB.saveUsers(users);
+                    Toast.show(I18n.t('admin.userUpdated'));
+                }
+            } else {
+                const newU = { id: Utils.uid(), name, email, password: pw || 'password123', role, isActive, createdAt: new Date().toISOString() };
+                users.push(newU);
+                DB.saveUsers(users);
+                Toast.show(I18n.t('admin.userAdded'));
+            }
+            Modal.close('user-modal');
+            renderPage();
+        }
+
+        function deleteUser(id) {
+            if (id === currentUser.id) { Toast.show("You can't delete yourself", 'warning'); return; }
+            Modal.confirm(I18n.t('common.confirmDelete'), () => {
+                const users = DB.getUsers().filter(u => u.id !== id);
+                DB.saveUsers(users);
+                Toast.show(I18n.t('admin.userDeleted'));
+                renderPage();
+            }, I18n.lang);
+        }
+
+        window.onload = () => {
+            currentUser = Auth.guard();
+            if (!currentUser) return;
+            if (currentUser.role !== 'admin') { window.location.href = 'dashboard.html'; return; }
+            I18n.init();
+            Components.init('admin');
+            renderPage();
+        };
+    </script>
+</body>
+
+</html>
