@@ -147,13 +147,13 @@ export default function ResultsPage() {
                                                         ) : q.type === 'rating' ? (
                                                             <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
                                                                 Avg: <strong style={{ color: 'var(--primary-light)', fontSize: 20 }}>
-                                                                    {(textAnswers.reduce((a, v) => a + (v as number), 0) / Math.max(textAnswers.length, 1)).toFixed(1)}
+                                                                    {((textAnswers as number[]).reduce((a, v) => a + v, 0) / Math.max(textAnswers.length, 1)).toFixed(1)}
                                                                 </strong> / 5 ⭐
                                                             </div>
                                                         ) : q.type === 'scale' ? (
                                                             <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
                                                                 Avg: <strong style={{ color: 'var(--primary-light)', fontSize: 20 }}>
-                                                                    {(textAnswers.reduce((a, v) => a + (v as number), 0) / Math.max(textAnswers.length, 1)).toFixed(1)}
+                                                                    {((textAnswers as number[]).reduce((a, v) => a + v, 0) / Math.max(textAnswers.length, 1)).toFixed(1)}
                                                                 </strong>
                                                             </div>
                                                         ) : q.type === 'yes_no' ? (
