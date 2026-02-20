@@ -155,89 +155,148 @@ export default function SurveyPage() {
                                 })}
                             </tbody>
                         </table>
+
+                        {q.hasOther && (
+                            <div style={{ padding: '12px', borderTop: '1px solid var(--border)', background: answers[q.id] && Object.keys(answers[q.id] as LikertAns).some(k => k === '__other__') ? 'rgba(99,102,241,0.05)' : 'transparent' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                    <div style={{ flex: 1, minWidth: 150 }}>
+                                        <input
+                                            type="text"
+                                            value={otherText[q.id] ?? ''}
+                                            onChange={e => {
+                                                setOtherText(o => ({ ...o, [q.id]: e.target.value }));
+                                            }}
+                                            onBlur={() => {
+                                                // Ensure the 'Other' text is recorded even if no rating is selected yet
+                                                if (otherText[q.id]) {
+                                                    const likertAns = (answers[q.id] as LikertAns) ?? {};
+                                                    if (!likertAns['__other__']) {
+                                                        const updated: LikertAns = { ...likertAns, ['__other__']: '' };
+                                                        setAnswer(q.id, updated as unknown as AnswerValue);
+                                                    }
+                                                }
+                                            }}
+                                            placeholder="Other (please specify)"
+                                            style={{ width: '100%', background: 'none', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--text-primary)', outline: 'none', fontSize: 13, padding: '8px 12px' }}
+                                        />
+                                    </div>
+                                    <div style={{ display: 'flex', gap: 0, justifyContent: 'space-around', flex: 1 }}>
+                                        {scale.map((s, si) => {
+                                            const likertAns = (answers[q.id] as LikertAns) ?? {};
+                                            return (
+                                                <div key={`other_${si}`} style={{ textAlign: 'center', flex: 1, minWidth: 72 }}>
+                                                    <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                                                        <input type="radio" name={`${q.id}_other`} value={s}
+                                                            checked={likertAns['__other__'] === s}
+                                                            onChange={() => {
+                                                                const updated: LikertAns = { ...likertAns, ['__other__']: s };
+                                                                setAnswer(q.id, updated as unknown as AnswerValue);
+                                                            }}
+                                                            style={{ width: 18, height: 18, accentColor: 'var(--primary)', cursor: 'pointer' }} />
+                                                    </label>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
-                )}
+                )
+                }
 
                 {/* ── Multiple Choice ── */}
-                {q.type === 'multiple_choice' && (<>
-                    {options.map((opt: string) => (
-                        <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, border: `1px solid ${answers[q.id] === opt ? 'var(--primary)' : 'var(--border)'}`, background: answers[q.id] === opt ? 'rgba(99,102,241,0.1)' : 'var(--bg-card)', marginBottom: 8, cursor: 'pointer' }}>
-                            <input type="radio" name={q.id} value={opt} checked={answers[q.id] === opt} onChange={() => setAnswer(q.id, opt)} style={{ accentColor: 'var(--primary)' }} />{opt}
-                        </label>
-                    ))}
-                    {q.hasOther && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, border: `1px solid ${answers[q.id] === '__other__' ? 'var(--primary)' : 'var(--border)'}`, marginBottom: 8 }}>
-                            <input type="radio" name={q.id} value="__other__" checked={answers[q.id] === '__other__'} onChange={() => setAnswer(q.id, '__other__')} style={{ accentColor: 'var(--primary)', flexShrink: 0 }} />
-                            <span style={{ flexShrink: 0 }}>Other:</span>
-                            <input type="text" value={otherText[q.id] ?? ''} onChange={e => { setOtherText(o => ({ ...o, [q.id]: e.target.value })); setAnswer(q.id, '__other__'); }} placeholder="Please specify..." style={{ flex: 1, background: 'none', border: 'none', borderBottom: '1px solid var(--border)', color: 'var(--text-primary)', outline: 'none', fontSize: 14, padding: '2px 0' }} />
-                        </div>
-                    )}
-                </>)}
+                {
+                    q.type === 'multiple_choice' && (<>
+                        {options.map((opt: string) => (
+                            <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, border: `1px solid ${answers[q.id] === opt ? 'var(--primary)' : 'var(--border)'}`, background: answers[q.id] === opt ? 'rgba(99,102,241,0.1)' : 'var(--bg-card)', marginBottom: 8, cursor: 'pointer' }}>
+                                <input type="radio" name={q.id} value={opt} checked={answers[q.id] === opt} onChange={() => setAnswer(q.id, opt)} style={{ accentColor: 'var(--primary)' }} />{opt}
+                            </label>
+                        ))}
+                        {q.hasOther && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, border: `1px solid ${answers[q.id] === '__other__' ? 'var(--primary)' : 'var(--border)'}`, marginBottom: 8 }}>
+                                <input type="radio" name={q.id} value="__other__" checked={answers[q.id] === '__other__'} onChange={() => setAnswer(q.id, '__other__')} style={{ accentColor: 'var(--primary)', flexShrink: 0 }} />
+                                <span style={{ flexShrink: 0 }}>Other:</span>
+                                <input type="text" value={otherText[q.id] ?? ''} onChange={e => { setOtherText(o => ({ ...o, [q.id]: e.target.value })); setAnswer(q.id, '__other__'); }} placeholder="Please specify..." style={{ flex: 1, background: 'none', border: 'none', borderBottom: '1px solid var(--border)', color: 'var(--text-primary)', outline: 'none', fontSize: 14, padding: '2px 0' }} />
+                            </div>
+                        )}
+                    </>)
+                }
 
                 {/* ── Checkboxes ── */}
-                {q.type === 'checkboxes' && (<>
-                    {options.map((opt: string) => {
-                        const checked = Array.isArray(answers[q.id]) && (answers[q.id] as string[]).includes(opt);
-                        return (
-                            <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, border: `1px solid ${checked ? 'var(--primary)' : 'var(--border)'}`, background: checked ? 'rgba(99,102,241,0.1)' : 'var(--bg-card)', marginBottom: 8, cursor: 'pointer' }}>
-                                <input type="checkbox" checked={checked} onChange={ev => { const arr = Array.isArray(answers[q.id]) ? [...(answers[q.id] as string[])] : []; if (ev.target.checked) arr.push(opt); else arr.splice(arr.indexOf(opt), 1); setAnswer(q.id, arr); }} style={{ accentColor: 'var(--primary)' }} />{opt}
-                            </label>
-                        );
-                    })}
-                    {q.hasOther && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', marginBottom: 8 }}>
-                            <input type="checkbox" checked={!!(otherText[q.id])} onChange={e => { if (!e.target.checked) setOtherText(o => ({ ...o, [q.id]: '' })); }} style={{ accentColor: 'var(--primary)', flexShrink: 0 }} />
-                            <span style={{ flexShrink: 0 }}>Other:</span>
-                            <input type="text" value={otherText[q.id] ?? ''} onChange={e => setOtherText(o => ({ ...o, [q.id]: e.target.value }))} placeholder="Please specify..." style={{ flex: 1, background: 'none', border: 'none', borderBottom: '1px solid var(--border)', color: 'var(--text-primary)', outline: 'none', fontSize: 14, padding: '2px 0' }} />
-                        </div>
-                    )}
-                </>)}
+                {
+                    q.type === 'checkboxes' && (<>
+                        {options.map((opt: string) => {
+                            const checked = Array.isArray(answers[q.id]) && (answers[q.id] as string[]).includes(opt);
+                            return (
+                                <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, border: `1px solid ${checked ? 'var(--primary)' : 'var(--border)'}`, background: checked ? 'rgba(99,102,241,0.1)' : 'var(--bg-card)', marginBottom: 8, cursor: 'pointer' }}>
+                                    <input type="checkbox" checked={checked} onChange={ev => { const arr = Array.isArray(answers[q.id]) ? [...(answers[q.id] as string[])] : []; if (ev.target.checked) arr.push(opt); else arr.splice(arr.indexOf(opt), 1); setAnswer(q.id, arr); }} style={{ accentColor: 'var(--primary)' }} />{opt}
+                                </label>
+                            );
+                        })}
+                        {q.hasOther && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', marginBottom: 8 }}>
+                                <input type="checkbox" checked={!!(otherText[q.id])} onChange={e => { if (!e.target.checked) setOtherText(o => ({ ...o, [q.id]: '' })); }} style={{ accentColor: 'var(--primary)', flexShrink: 0 }} />
+                                <span style={{ flexShrink: 0 }}>Other:</span>
+                                <input type="text" value={otherText[q.id] ?? ''} onChange={e => setOtherText(o => ({ ...o, [q.id]: e.target.value }))} placeholder="Please specify..." style={{ flex: 1, background: 'none', border: 'none', borderBottom: '1px solid var(--border)', color: 'var(--text-primary)', outline: 'none', fontSize: 14, padding: '2px 0' }} />
+                            </div>
+                        )}
+                    </>)
+                }
 
                 {q.type === 'short_text' && <input className="form-input" value={(answers[q.id] as string) ?? ''} onChange={e => setAnswer(q.id, e.target.value)} placeholder="Your answer..." />}
                 {q.type === 'long_text' && <textarea className="form-input" rows={4} value={(answers[q.id] as string) ?? ''} onChange={e => setAnswer(q.id, e.target.value)} placeholder="Your answer..." style={{ resize: 'vertical' }} />}
-                {q.type === 'rating' && (
-                    <div style={{ display: 'flex', gap: 8 }}>
-                        {[1, 2, 3, 4, 5].map(n => (
-                            <button key={n} type="button" onClick={() => setAnswer(q.id, n)} style={{ fontSize: 32, background: 'none', border: 'none', cursor: 'pointer', opacity: (answers[q.id] as number) >= n ? 1 : 0.3, filter: (answers[q.id] as number) >= n ? 'drop-shadow(0 0 6px #f59e0b)' : 'none' }}>⭐</button>
-                        ))}
-                    </div>
-                )}
-                {q.type === 'scale' && (
-                    <div>
-                        <input type="range" min={q.minValue ?? 1} max={q.maxValue ?? 10} value={(answers[q.id] as number) ?? q.minValue ?? 1} onChange={e => setAnswer(q.id, parseInt(e.target.value))} style={{ width: '100%', accentColor: 'var(--primary)' }} />
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
-                            <span>{q.minValue ?? 1} {q.minLabel && `(${q.minLabel})`}</span>
-                            <span style={{ fontWeight: 700, color: 'var(--primary-light)', fontSize: 16 }}>{(answers[q.id] as number) ?? q.minValue ?? 1}</span>
-                            <span>{q.maxValue ?? 10} {q.maxLabel && `(${q.maxLabel})`}</span>
+                {
+                    q.type === 'rating' && (
+                        <div style={{ display: 'flex', gap: 8 }}>
+                            {[1, 2, 3, 4, 5].map(n => (
+                                <button key={n} type="button" onClick={() => setAnswer(q.id, n)} style={{ fontSize: 32, background: 'none', border: 'none', cursor: 'pointer', opacity: (answers[q.id] as number) >= n ? 1 : 0.3, filter: (answers[q.id] as number) >= n ? 'drop-shadow(0 0 6px #f59e0b)' : 'none' }}>⭐</button>
+                            ))}
                         </div>
-                    </div>
-                )}
-                {q.type === 'dropdown' && (<>
-                    <select className="form-input" value={(answers[q.id] as string) === '__other__' ? '__other__' : ((answers[q.id] as string) ?? '')} onChange={e => {
-                        if (e.target.value !== '__other__') setAnswer(q.id, e.target.value);
-                        else setAnswer(q.id, '__other__');
-                    }}>
-                        <option value="">-- Select --</option>
-                        {options.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
-                        {q.hasOther && <option value="__other__">Other (please specify)</option>}
-                    </select>
-                    {q.hasOther && answers[q.id] === '__other__' && (
-                        <div style={{ marginTop: 8 }}>
-                            <input type="text" value={otherText[q.id] ?? ''} onChange={e => { setOtherText(o => ({ ...o, [q.id]: e.target.value })); setAnswer(q.id, '__other__'); }} placeholder="Please specify..." style={{ width: '100%', background: 'none', border: 'none', borderBottom: '1px solid var(--border)', color: 'var(--text-primary)', outline: 'none', fontSize: 14, padding: '6px 0' }} />
+                    )
+                }
+                {
+                    q.type === 'scale' && (
+                        <div>
+                            <input type="range" min={q.minValue ?? 1} max={q.maxValue ?? 10} value={(answers[q.id] as number) ?? q.minValue ?? 1} onChange={e => setAnswer(q.id, parseInt(e.target.value))} style={{ width: '100%', accentColor: 'var(--primary)' }} />
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
+                                <span>{q.minValue ?? 1} {q.minLabel && `(${q.minLabel})`}</span>
+                                <span style={{ fontWeight: 700, color: 'var(--primary-light)', fontSize: 16 }}>{(answers[q.id] as number) ?? q.minValue ?? 1}</span>
+                                <span>{q.maxValue ?? 10} {q.maxLabel && `(${q.maxLabel})`}</span>
+                            </div>
                         </div>
-                    )}
-                </>)}
+                    )
+                }
+                {
+                    q.type === 'dropdown' && (<>
+                        <select className="form-input" value={(answers[q.id] as string) === '__other__' ? '__other__' : ((answers[q.id] as string) ?? '')} onChange={e => {
+                            if (e.target.value !== '__other__') setAnswer(q.id, e.target.value);
+                            else setAnswer(q.id, '__other__');
+                        }}>
+                            <option value="">-- Select --</option>
+                            {options.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
+                            {q.hasOther && <option value="__other__">Other (please specify)</option>}
+                        </select>
+                        {q.hasOther && answers[q.id] === '__other__' && (
+                            <div style={{ marginTop: 8 }}>
+                                <input type="text" value={otherText[q.id] ?? ''} onChange={e => { setOtherText(o => ({ ...o, [q.id]: e.target.value })); setAnswer(q.id, '__other__'); }} placeholder="Please specify..." style={{ width: '100%', background: 'none', border: 'none', borderBottom: '1px solid var(--border)', color: 'var(--text-primary)', outline: 'none', fontSize: 14, padding: '6px 0' }} />
+                            </div>
+                        )}
+                    </>)
+                }
                 {q.type === 'date' && <input className="form-input" type="date" value={(answers[q.id] as string) ?? ''} onChange={e => setAnswer(q.id, e.target.value)} />}
-                {q.type === 'yes_no' && (
-                    <div style={{ display: 'flex', gap: 12 }}>
-                        {['yes', 'no'].map(v => (
-                            <button key={v} type="button" onClick={() => setAnswer(q.id, v)} className={`btn ${answers[q.id] === v ? 'btn-primary' : 'btn-secondary'}`} style={{ flex: 1, padding: '12px', fontSize: 16, fontWeight: 700 }}>
-                                {v === 'yes' ? `✓ ${t('common.yes')}` : `✗ ${t('common.no')}`}
-                            </button>
-                        ))}
-                    </div>
-                )}
-            </div>
+                {
+                    q.type === 'yes_no' && (
+                        <div style={{ display: 'flex', gap: 12 }}>
+                            {['yes', 'no'].map(v => (
+                                <button key={v} type="button" onClick={() => setAnswer(q.id, v)} className={`btn ${answers[q.id] === v ? 'btn-primary' : 'btn-secondary'}`} style={{ flex: 1, padding: '12px', fontSize: 16, fontWeight: 700 }}>
+                                    {v === 'yes' ? `✓ ${t('common.yes')}` : `✗ ${t('common.no')}`}
+                                </button>
+                            ))}
+                        </div>
+                    )
+                }
+            </div >
         );
     };
 
