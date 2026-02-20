@@ -8,16 +8,16 @@ import { QUESTION_TYPE_INFO, uid, DEFAULT_LIKERT_SCALE, DEFAULT_LIKERT_SCALE_TH 
 import * as DB from '@/lib/db';
 import * as Auth from '@/lib/auth';
 import type { Survey, Question, QuestionType } from '@/types';
-import { LuGrid, LuList, LuCheckSquare, LuType, LuAlignLeft, LuStar, LuSlidersHorizontal, LuChevronDown, LuCalendar, LuToggleRight } from 'react-icons/lu';
+import { LuLayout, LuList, LuCheckSquare, LuType, LuAlignLeft, LuStar, LuSliders, LuChevronDown, LuCalendar, LuToggleRight } from 'react-icons/lu';
 
 const ICON_MAP: Record<QuestionType, React.ReactNode> = {
-    likert: <LuGrid size={16} />,
+    likert: <LuLayout size={16} />,
     multiple_choice: <LuList size={16} />,
     checkboxes: <LuCheckSquare size={16} />,
     short_text: <LuType size={16} />,
     long_text: <LuAlignLeft size={16} />,
     rating: <LuStar size={16} />,
-    scale: <LuSlidersHorizontal size={16} />,
+    scale: <LuSliders size={16} />,
     dropdown: <LuChevronDown size={16} />,
     date: <LuCalendar size={16} />,
     yes_no: <LuToggleRight size={16} />
