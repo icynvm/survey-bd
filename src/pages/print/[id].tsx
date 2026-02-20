@@ -110,7 +110,7 @@ export default function PrintSurveyPage() {
                                         <span>{qi + 1}. {qTitle}</span>
                                         <div className="scale-cols">
                                             {scale.map((s, si) => (
-                                                <div key={si} className="print-scale-col" style={{ minWidth: 48, textAlign: 'center', fontSize: 9 }}>{s}</div>
+                                                <div key={si} className="print-scale-col" style={{ textAlign: 'center', fontSize: '9pt' }}>{s}</div>
                                             ))}
                                         </div>
                                     </div>
