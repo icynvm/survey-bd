@@ -4,7 +4,7 @@ export type Role = 'admin' | 'creator' | 'respondent';
 export type SurveyStatus = 'draft' | 'published' | 'closed';
 export type QuestionType =
     | 'multiple_choice' | 'checkboxes' | 'short_text' | 'long_text'
-    | 'rating' | 'scale' | 'dropdown' | 'date' | 'yes_no';
+    | 'rating' | 'scale' | 'dropdown' | 'date' | 'yes_no' | 'likert';
 export type Lang = 'en' | 'th';
 
 export interface User {
@@ -29,13 +29,22 @@ export interface Question {
     type: QuestionType;
     title: string;
     titleTh: string;
+    description?: string;       // ← NEW: optional label/description below title
+    descriptionTh?: string;     // ← NEW: Thai description
     required: boolean;
     options?: string[];
     optionsTh?: string[];
+    hasOther?: boolean;         // ← NEW: show "Other" text box for choice questions
+    // scale
     minValue?: number;
     maxValue?: number;
     minLabel?: string;
     maxLabel?: string;
+    // likert
+    likertRows?: string[];      // ← NEW: sub-questions in likert table
+    likertRowsTh?: string[];
+    likertScale?: string[];     // ← NEW: column labels e.g. ['Very Satisfied','Satisfied',...]
+    likertScaleTh?: string[];
 }
 
 export interface SurveySettings {
@@ -59,7 +68,7 @@ export interface Survey {
     publishedAt: string | null;
 }
 
-export type AnswerValue = string | string[] | number;
+export type AnswerValue = string | string[] | number | Record<string, string | number>;
 
 export interface SurveyResponse {
     id: string;
