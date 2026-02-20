@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Results & Analytics | SurveyBD</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .results-layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 0;
+            height: calc(100vh - var(--topbar-h));
+            overflow: hidden;
+        }
+
+        .survey-picker {
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .picker-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .picker-item {
+            padding: 12px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid transparent;
+            margin-bottom: 6px;
+        }
+
+        .picker-item:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .picker-item.active {
+            background: rgba(99, 102, 241, 0.12);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .picker-label {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .picker-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .results-main {
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        .stat-mini {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .stat-mini:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .stat-mini-val {
+            font-size: 28px;
+            font-weight: 800;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-mini-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .chart-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .chart-card-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .chart-card-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .chart-wrap {
+            position: relative;
+            height: 220px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 4px;
+            margin-bottom: 20px;
+            width: fit-content;
+        }
+
+        .tab-btn {
+            padding: 7px 18px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            background: none;
+            color: var(--text-muted);
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+        }
+
+        .response-row {
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            gap: 16px;
+            align-items: center;
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .response-row:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .response-row:last-child {
+            border-bottom: none;
+        }
+
+        .expand-panel {
+            padding: 16px;
+            background: rgba(99, 102, 241, 0.04);
+            border-top: 1px solid var(--border);
+            display: none;
+        }
+
+        .expand-panel.open {
+            display: block;
+        }
+
+        .answer-item {
+            margin-bottom: 12px;
+        }
+
+        .answer-q {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .answer-v {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .rating-stars {
+            color: #f59e0b;
+            font-size: 16px;
+        }
+
+        .no-selection-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            color: var(--text-muted);
+            padding: 40px;
+        }
+
+        @media(max-width:900px) {
+            .results-layout {
+                grid-template-columns: 1fr
+            }
+
+            .survey-picker {
+                display: none
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-layout">
+        <aside class="sidebar" id="sidebar"></aside>
+        <div class="main-content">
+            <header class="topbar" id="topbar"></header>
+            <div class="results-layout">
+                <div class="survey-picker" id="survey-picker"></div>
+                <div class="results-main" id="results-main">
+                    <div class="no-selection-state">
+                        <div style="font-size:56px;margin-bottom:16px">📊</div>
+                        <div style="font-size:18px;font-weight:700;margin-bottom:8px" data-i18n="results.selectSurvey">
+                            Select a survey to view results</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="toast-container"></div>
+    <script src="js/i18n.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        let currentUser, selectedSurveyId = null, activeTab = 'summary', charts = [];
+
+        function onLangChange() { if (currentUser) { renderPicker(); if (selectedSurveyId) renderResults(selectedSurveyId); } }
+
+        function renderPicker() {
+            const lang = I18n.lang;
+            const surveys = DB.getSurveys().filter(s => currentUser.role === 'admin' || s.creatorId === currentUser.id);
+            const picker = document.getElementById('survey-picker');
+            picker.innerHTML = `<div class="picker-title">${I18n.t('dashboard.recentSurveys')}</div>`;
+            if (!surveys.length) { picker.innerHTML += `<div class="empty-state" style="padding:20px"><div class="empty-icon" style="font-size:32px">📋</div><div class="text-sm text-muted">${I18n.t('survey.noSurveys')}</div></div>`; return; }
+            surveys.forEach(s => {
+                const resCount = DB.getResponsesBySurvey(s.id).length;
+                const title = lang === 'th' && s.titleTh ? s.titleTh : s.title;
+                const el = document.createElement('div');
+                el.className = `picker-item${selectedSurveyId === s.id ? ' active' : ''}`;
+                el.innerHTML = `<div class="picker-label">${Utils.truncate(Utils.escapeHtml(title), 40)}</div><div class="picker-meta">${resCount} responses · ${Utils.getSurveyStatusBadge(s.status, lang)}</div>`;
+                el.onclick = () => { selectedSurveyId = s.id; renderPicker(); renderResults(s.id); };
+                picker.appendChild(el);
+            });
+        }
+
+        function renderResults(surveyId) {
+            const lang = I18n.lang;
+            const survey = DB.getSurveyById(surveyId);
+            if (!survey) { return; }
+            const responses = DB.getResponsesBySurvey(surveyId);
+            const completionTimes = responses.filter(r => r.completionTime).map(r => r.completionTime);
+            const avgTime = completionTimes.length ? Math.round(completionTimes.reduce((a, b) => a + b, 0) / completionTimes.length) : 0;
+            const lastResp = responses.length ? responses.slice().sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt))[0] : null;
+            const surveyTitle = lang === 'th' && survey.titleTh ? survey.titleTh : survey.title;
+
+            // Destroy old charts
+            charts.forEach(c => { try { c.destroy() } catch { } }); charts = [];
+
+            const statsHtml = `
+  <div class="grid grid-4" style="margin-bottom:20px">
+    <div class="stat-mini"><div class="stat-mini-val">${responses.length}</div><div class="stat-mini-label">${I18n.t('results.totalResponses')}</div></div>
+    <div class="stat-mini"><div class="stat-mini-val">${survey.questions?.length || 0}</div><div class="stat-mini-label">${I18n.t('survey.questions')}</div></div>
+    <div class="stat-mini"><div class="stat-mini-val">${avgTime ? Utils.formatTime(avgTime) : '—'}</div><div class="stat-mini-label">${I18n.t('results.avgTime')}</div></div>
+    <div class="stat-mini"><div class="stat-mini-val">${lastResp ? Utils.timeAgo(lastResp.submittedAt) : '—'}</div><div class="stat-mini-label">${I18n.t('results.lastResponse')}</div></div>
+  </div>`;
+
+            document.getElementById('results-main').innerHTML = `
+  <div class="page-header">
+    <div>
+      <div class="page-title">${Utils.escapeHtml(surveyTitle)}</div>
+      <div class="page-desc">${Utils.getSurveyStatusBadge(survey.status, lang)} &nbsp; ${Utils.formatDate(survey.createdAt, lang)}</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary btn-sm" onclick="exportCSV('${surveyId}')"><i class="fas fa-download"></i> ${I18n.t('results.exportCSV')}</button>
+      <a href="builder.html?id=${surveyId}" class="btn btn-secondary btn-sm"><i class="fas fa-edit"></i> ${I18n.t('common.edit')}</a>
+    </div>
+  </div>
+  ${statsHtml}
+  <div class="tabs">
+    <button class="tab-btn${activeTab === 'summary' ? ' active' : ''}" onclick="switchTab('summary')">${I18n.t('results.summary')}</button>
+    <button class="tab-btn${activeTab === 'responses' ? ' active' : ''}" onclick="switchTab('responses')">${I18n.t('results.responses')} (${responses.length})</button>
+  </div>
+  <div id="tab-content"></div>`;
+
+            renderTab(survey, responses);
+        }
+
+        function switchTab(tab) {
+            activeTab = tab;
+            const survey = DB.getSurveyById(selectedSurveyId);
+            const responses = DB.getResponsesBySurvey(selectedSurveyId);
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.textContent.startsWith(tab === 'summary' ? I18n.t('results.summary') : I18n.t('results.responses'))));
+            renderTab(survey, responses);
+        }
+
+        function renderTab(survey, responses) {
+            charts.forEach(c => { try { c.destroy() } catch { } }); charts = [];
+            const lang = I18n.lang;
+            const container = document.getElementById('tab-content');
+            if (!container) return;
+            if (activeTab === 'summary') renderSummaryTab(survey, responses, container, lang);
+            else renderResponsesTab(survey, responses, container, lang);
+        }
+
+        function renderSummaryTab(survey, responses, container, lang) {
+            if (!responses.length) { container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">${I18n.t('results.noResponses')}</div><div class="empty-desc">${I18n.t('results.noResponsesDesc')}</div></div>`; return; }
+            const qs = survey.questions || [];
+            container.innerHTML = qs.map((q, i) => {
+                const title = lang === 'th' && q.titleTh ? q.titleTh : q.title || `Q${i + 1}`;
+                const info = Utils.getQuestionTypeInfo(q.type, lang);
+                return `<div class="chart-card"><div class="chart-card-title">${i + 1}. ${Utils.escapeHtml(title)}</div><div class="chart-card-sub">${info.icon} ${info[lang] || info.en}</div><div id="chart-area-${q.id}"></div></div>`;
+            }).join('');
+            // Render charts after DOM
+            setTimeout(() => {
+                qs.forEach(q => { renderQuestionChart(q, responses, lang); });
+            }, 50);
+        }
+
+        function renderQuestionChart(q, responses, lang) {
+            const area = document.getElementById(`chart-area-${q.id}`);
+            if (!area) return;
+            const answers = responses.map(r => r.answers[q.id]).filter(a => a !== undefined && a !== null && a !== '');
+
+            if (['multiple_choice', 'dropdown', 'yes_no'].includes(q.type)) {
+                const counts = {}; answers.forEach(a => { counts[a] = (counts[a] || 0) + 1; });
+                const labels = Object.keys(counts); const data = Object.values(counts);
+                const colors = ['#6366f1', '#a855f7', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#f97316'];
+                area.innerHTML = `<div class="chart-wrap"><canvas id="c-${q.id}"></canvas></div>`;
+                const ctx = document.getElementById(`c-${q.id}`).getContext('2d');
+                const ch = new Chart(ctx, { type: 'doughnut', data: { labels, datasets: [{ data, backgroundColor: colors.slice(0, labels.length), borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 12 }, padding: 12 } } } } });
+                charts.push(ch);
+            } else if (q.type === 'checkboxes') {
+                const counts = {}; answers.forEach(arr => { (Array.isArray(arr) ? arr : [arr]).forEach(v => { counts[v] = (counts[v] || 0) + 1; }); });
+                const labels = Object.keys(counts); const data = Object.values(counts);
+                area.innerHTML = `<div class="chart-wrap"><canvas id="c-${q.id}"></canvas></div>`;
+                const ctx = document.getElementById(`c-${q.id}`).getContext('2d');
+                const ch = new Chart(ctx, { type: 'bar', data: { labels, datasets: [{ data, backgroundColor: 'rgba(99,102,241,0.7)', borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#64748b' }, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { ticks: { color: '#64748b' }, grid: { display: false } } } } });
+                charts.push(ch);
+            } else if (q.type === 'rating') {
+                const counts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }; answers.forEach(a => { if (counts[a] !== undefined) counts[a]++; });
+                const avg = answers.length ? Math.round(answers.reduce((a, b) => a + b, 0) / answers.length * 10) / 10 : 0;
+                area.innerHTML = `<div style="text-align:center;margin-bottom:12px"><span class="rating-stars">${'★'.repeat(Math.round(avg))}${'☆'.repeat(5 - Math.round(avg))}</span><div style="font-size:22px;font-weight:800;color:var(--warning)">${avg}/5</div><div class="text-sm text-muted">${answers.length} ratings</div></div><div class="chart-wrap" style="height:150px"><canvas id="c-${q.id}"></canvas></div>`;
+                const ctx = document.getElementById(`c-${q.id}`).getContext('2d');
+                const ch = new Chart(ctx, { type: 'bar', data: { labels: ['1★', '2★', '3★', '4★', '5★'], datasets: [{ data: Object.values(counts), backgroundColor: ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981'], borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#64748b' }, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { ticks: { color: '#64748b' }, grid: { display: false } } } } });
+                charts.push(ch);
+            } else if (q.type === 'scale') {
+                const counts = {}; const min = q.minValue || 1, max = q.maxValue || 10;
+                for (let i = min; i <= max; i++)counts[i] = 0; answers.forEach(a => { if (counts[a] !== undefined) counts[a]++; });
+                const avg = answers.length ? Math.round(answers.reduce((a, b) => a + b, 0) / answers.length * 10) / 10 : 0;
+                area.innerHTML = `<div style="text-align:center;margin-bottom:12px"><span style="font-size:32px;font-weight:800;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent">${avg}</span><div class="text-sm text-muted">avg of ${answers.length} responses</div></div><div class="chart-wrap" style="height:150px"><canvas id="c-${q.id}"></canvas></div>`;
+                const ctx = document.getElementById(`c-${q.id}`).getContext('2d');
+                const ch = new Chart(ctx, { type: 'bar', data: { labels: Object.keys(counts), datasets: [{ data: Object.values(counts), backgroundColor: 'rgba(99,102,241,0.7)', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#64748b' }, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { ticks: { color: '#64748b' }, grid: { display: false } } } } });
+                charts.push(ch);
+            } else {
+                const sample = answers.slice(0, 5);
+                area.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px">${sample.map(a => `<div style="padding:10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;font-size:13px">"${Utils.escapeHtml(String(a))}"</div>`).join('')}${answers.length > 5 ? `<div class="text-sm text-muted">+${answers.length - 5} more responses</div>` : ''}</div>`;
+            }
+        }
+
+        function renderResponsesTab(survey, responses, container, lang) {
+            if (!responses.length) { container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">${I18n.t('results.noResponses')}</div></div>`; return; }
+            const sorted = [...responses].sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+            container.innerHTML = `<div class="table-wrap"><table><thead><tr><th>#</th><th>${I18n.t('results.respondent')}</th><th>${I18n.t('results.submittedAt')}</th><th>Time</th><th>${I18n.t('common.actions')}</th></tr></thead><tbody>
+  ${sorted.map((r, i) => `
+  <tr>
+    <td><span class="badge badge-muted">${i + 1}</span></td>
+    <td><div style="font-weight:600">${Utils.escapeHtml(r.respondentName || I18n.t('results.anonymous'))}</div><div class="text-xs text-muted">${r.respondentId ? '' : 'Anonymous'}</div></td>
+    <td><div>${Utils.formatDate(r.submittedAt, lang)}</div><div class="text-xs text-muted">${Utils.timeAgo(r.submittedAt)}</div></td>
+    <td>${Utils.formatTime(r.completionTime)}</td>
+    <td><button class="btn btn-secondary btn-sm" onclick="toggleResponse('${r.id}')"><i class="fas fa-eye"></i></button></td>
+  </tr>
+  <tr id="exp-row-${r.id}" style="display:none"><td colspan="5" style="padding:0">
+    <div class="expand-panel open">
+    ${(survey.questions || []).map(q => {
+                const qtitle = lang === 'th' && q.titleTh ? q.titleTh : q.title;
+                const ans = r.answers[q.id];
+                let displayAns = '—';
+                if (ans !== undefined && ans !== null && ans !== '') {
+                    if (Array.isArray(ans)) displayAns = ans.join(', ');
+                    else if (q.type === 'rating') displayAns = '★'.repeat(ans) + '☆'.repeat(5 - ans) + ` (${ans}/5)`;
+                    else displayAns = String(ans);
+                }
+                return `<div class="answer-item"><div class="answer-q">${Utils.escapeHtml(qtitle)}</div><div class="answer-v">${Utils.escapeHtml(displayAns)}</div></div>`;
+            }).join('<div class="divider"></div>')}
+    </div>
+  </td></tr>`).join('')}
+  </tbody></table></div>`;
+        }
+
+        function toggleResponse(id) {
+            const row = document.getElementById(`exp-row-${id}`);
+            if (row) row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+        }
+
+        function exportCSV(surveyId) {
+            const lang = I18n.lang;
+            const survey = DB.getSurveyById(surveyId);
+            const responses = DB.getResponsesBySurvey(surveyId);
+            if (!responses.length) { Toast.show('No responses to export', 'warning'); return; }
+            const qs = survey.questions || [];
+            const headers = ['#', 'Respondent', 'Submitted At', 'Time (s)', ...qs.map((q, i) => `Q${i + 1}: ${q.title}`)];
+            const rows = responses.map((r, i) => [i + 1, r.respondentName || 'Anonymous', r.submittedAt, r.completionTime || '', ...qs.map(q => { const a = r.answers[q.id]; return Array.isArray(a) ? a.join(';') : a || ''; })]);
+            const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `survey-${surveyId}-results.csv`; a.click();
+            Toast.show('CSV exported!');
+        }
+
+        window.onload = () => {
+            currentUser = Auth.guard();
+            if (!currentUser) return;
+            I18n.init();
+            Components.init('results');
+            renderPicker();
+            // Auto-select first survey
+            const params = new URLSearchParams(location.search);
+            const id = params.get('id');
+            if (id) { selectedSurveyId = id; renderPicker(); renderResults(id); }
+        };
+    </script>
+</body>
+
+</html>
