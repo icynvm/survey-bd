@@ -118,7 +118,14 @@ export default function PrintSurveyPage() {
                                     {rows.map((row, ri) => (
                                         <div key={ri} className="print-question-row">
                                             <div className="print-question-num">{ri + 1}</div>
-                                            <div className="print-question-text">{row}</div>
+                                            <div className="print-question-text" style={{ paddingRight: 12 }}>
+                                                <div style={{ fontWeight: 500 }}>{row}</div>
+                                                {q.likertRowDescriptions && q.likertRowDescriptions[ri] && (
+                                                    <div style={{ fontSize: '10pt', color: '#666', marginTop: 4, lineHeight: 1.3, fontStyle: 'italic' }}>
+                                                        {q.likertRowDescriptions[ri]}
+                                                    </div>
+                                                )}
+                                            </div>
                                             <div className="print-check-cols">
                                                 {scale.map((s, si) => (
                                                     <div key={si} className="print-check-cell">
@@ -128,22 +135,6 @@ export default function PrintSurveyPage() {
                                             </div>
                                         </div>
                                     ))}
-                                    {q.hasOther && (
-                                        <div className="print-question-row" style={{ background: '#fcfcfc' }}>
-                                            <div className="print-question-num">{rows.length + 1}</div>
-                                            <div className="print-question-text" style={{ display: 'flex', alignItems: 'center' }}>
-                                                <span style={{ marginRight: 8, color: '#555' }}>Other:</span>
-                                                <div style={{ flex: 1, borderBottom: '1px solid #ccc', margin: '0 12px 0 0', height: 16 }}></div>
-                                            </div>
-                                            <div className="print-check-cols">
-                                                {scale.map((s, si) => (
-                                                    <div key={si} className="print-check-cell">
-                                                        <Checkbox checked={likertAns['__other__'] === s} />
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
                                     {q.description && (
                                         <div className="print-text-row">
                                             <em>{q.description}</em>
