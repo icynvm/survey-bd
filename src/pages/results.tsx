@@ -11,7 +11,6 @@ import type { Survey, SurveyResponse } from '@/types';
 
 // Lazy load Chart to avoid SSR issues
 const Doughnut = dynamic(() => import('react-chartjs-2').then(m => m.Doughnut), { ssr: false });
-const Bar = dynamic(() => import('react-chartjs-2').then(m => m.Bar), { ssr: false });
 
 export default function ResultsPage() {
     const { user, t, lang, ready } = useApp();
