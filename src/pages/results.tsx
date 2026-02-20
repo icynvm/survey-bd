@@ -154,7 +154,7 @@ export default function ResultsPage() {
                                                                             <thead>
                                                                                 <tr>
                                                                                     <th style={{ textAlign: 'left', padding: '6px 10px', borderBottom: '1px solid var(--border)', color: 'var(--text-muted)', minWidth: 160 }}>Statement</th>
-                                                                                    {scale.map((s, si) => <th key={si} style={{ textAlign: 'center', padding: '6px 8px', borderBottom: '1px solid var(--border)', color: 'var(--primary-light)', whiteSpace: 'nowrap', minWidth: 70 }}>{s}</th>)}
+                                                                                    {scale.map((s, si) => <th key={si} style={{ textAlign: 'center', padding: '6px 8px', borderBottom: '1px solid var(--border)', color: 'var(--primary-light)', whiteSpace: 'nowrap', minWidth: 80 }}>{si < 5 ? ([5,4,3,2,1][si]).toString() : ""}<div style={{fontSize:10}}>{s}</div></th>)}
                                                                                 </tr>
                                                                             </thead>
                                                                             <tbody>
@@ -228,8 +228,9 @@ export default function ResultsPage() {
                                             <table>
                                                 <thead><tr>
                                                     <th>{t('results.respondent')}</th>
-                                                    {selectedSurvey.questions.map(q => <th key={q.id} style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q.title}</th>)}
+                                                    {selectedSurvey.questions.map(q => <th key={q.id} style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q.title}</th>)}
                                                     <th>{t('results.submittedAt')}</th>
+                                                    <th style={{ width: 60 }}>PDF</th>
                                                 </tr></thead>
                                                 <tbody>{responses.map(r => (
                                                     <tr key={r.id}>
@@ -239,13 +240,16 @@ export default function ResultsPage() {
                                                             let display: React.ReactNode = '—';
                                                             if (ans !== undefined && ans !== null && ans !== '') {
                                                                 if (q.type === 'likert' && typeof ans === 'object' && !Array.isArray(ans)) {
-                                                                    // Format as "Row: Answer" list
+                                                                    const scale = q.likertScale ?? ['Very Satisfied', 'Satisfied', 'Moderate', 'Need Improvement', 'Dissatisfied', 'N/A'];
+                                                                    const scores: Record<string, number> = {};
+                                                                    [5, 4, 3, 2, 1].forEach((v, i) => { if (scale[i]) scores[scale[i]] = v; });
                                                                     display = (
-                                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                                                                             {Object.entries(ans as Record<string, string>).map(([row, val]) => (
                                                                                 <div key={row} style={{ fontSize: 11 }}>
-                                                                                    <span style={{ color: 'var(--text-muted)' }}>{row}:</span>{' '}
-                                                                                    <span style={{ color: 'var(--primary-light)', fontWeight: 600 }}>{val}</span>
+                                                                                    <span style={{ color: 'var(--text-muted)', fontSize: 10 }}>{row}: </span>
+                                                                                    <span style={{ color: 'var(--primary-light)', fontWeight: 700 }}>{val}</span>
+                                                                                    {scores[val] && <span style={{ color: 'var(--text-muted)', fontSize: 10 }}> ({scores[val]})</span>}
                                                                                 </div>
                                                                             ))}
                                                                         </div>
@@ -259,6 +263,13 @@ export default function ResultsPage() {
                                                             return <td key={q.id} style={{ color: 'var(--text-secondary)', fontSize: 13, verticalAlign: 'top', maxWidth: 220 }}>{display}</td>;
                                                         })}
                                                         <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{formatDate(r.submittedAt, lang)}</td>
+                                                        <td>
+                                                            <button
+                                                                title="Print this response as PDF"
+                                                                onClick={() => window.open(`/print/${selectedSurvey.id}?responseId=${r.id}`, '_blank')}
+                                                                style={{ padding: '5px 8px', background: 'rgba(99,102,241,0.15)', border: '1px solid var(--primary)', borderRadius: 6, color: 'var(--primary-light)', cursor: 'pointer', fontSize: 13 }}
+                                                            >🖨</button>
+                                                        </td>
                                                     </tr>
                                                 ))}</tbody>
                                             </table>
