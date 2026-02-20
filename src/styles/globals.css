@@ -1432,3 +1432,248 @@ tbody tr:hover {
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
 }
+
+/* ── PRINT SURVEY PAGE ── */
+.print-page {
+  background: white;
+  color: #000;
+  font-family: 'Sarabun', 'Inter', Arial, sans-serif;
+  font-size: 11pt;
+  padding: 0;
+  min-height: 100vh;
+}
+
+.print-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: #f8f8f8;
+  border-bottom: 2px solid #333;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  gap: 12px;
+}
+
+.print-doc {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 32px 40px;
+  background: white;
+}
+
+.print-doc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.print-doc-title {
+  font-size: 16pt;
+  font-weight: 700;
+}
+
+.print-doc-code {
+  font-size: 9pt;
+  border: 1px solid #000;
+  padding: 3px 8px;
+}
+
+.print-doc-desc {
+  font-size: 9.5pt;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+.print-scale-note {
+  font-size: 9pt;
+  color: #555;
+  margin-bottom: 16px;
+  font-style: italic;
+}
+
+.print-section {
+  border: 1px solid #000;
+  margin-bottom: 0;
+}
+
+.print-section+.print-section {
+  border-top: none;
+}
+
+.print-section-header {
+  background: #333;
+  color: white;
+  padding: 5px 10px;
+  font-weight: 700;
+  font-size: 10.5pt;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.print-section-header .scale-cols {
+  display: flex;
+  gap: 0;
+  font-size: 9pt;
+  font-weight: 600;
+}
+
+.print-scale-col {
+  width: 36px;
+  text-align: center;
+}
+
+.print-question-row {
+  display: flex;
+  align-items: center;
+  border-top: 1px solid #ccc;
+  min-height: 30px;
+}
+
+.print-question-row:first-child {
+  border-top: none;
+}
+
+.print-question-num {
+  width: 28px;
+  flex-shrink: 0;
+  padding: 4px 6px;
+  text-align: center;
+  font-size: 9.5pt;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid #ccc;
+}
+
+.print-question-text {
+  flex: 1;
+  padding: 5px 8px;
+  font-size: 9.5pt;
+  line-height: 1.4;
+}
+
+.print-question-text.bold {
+  font-weight: 700;
+}
+
+.print-check-cols {
+  display: flex;
+  flex-shrink: 0;
+  border-left: 1px solid #ccc;
+}
+
+.print-check-cell {
+  width: 36px;
+  border-left: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 0;
+  align-self: stretch;
+}
+
+.print-check-cell:first-child {
+  border-left: none;
+}
+
+.print-checkbox {
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid #333;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.print-checkbox.checked {
+  background: #333;
+  position: relative;
+}
+
+.print-checkbox.checked::after {
+  content: '✓';
+  position: absolute;
+  top: -3px;
+  left: 1px;
+  color: white;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.print-text-row {
+  padding: 3px 10px 6px;
+  border-top: 1px solid #eee;
+  font-size: 9pt;
+  color: #333;
+}
+
+.print-text-answer {
+  border-bottom: 1px solid #999;
+  min-height: 16px;
+  margin-top: 2px;
+  font-size: 9.5pt;
+}
+
+.print-footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0 0;
+  margin-top: 20px;
+  border-top: 1px solid #ccc;
+  font-size: 9pt;
+  color: #555;
+}
+
+.print-sign-box {
+  border: 1px solid #ccc;
+  padding: 6px 14px 2px;
+  min-width: 140px;
+  text-align: center;
+  font-size: 9pt;
+}
+
+.print-sign-line {
+  border-top: 1px solid #333;
+  margin-top: 30px;
+  font-size: 8pt;
+}
+
+/* ── PRINT MEDIA ── */
+@media print {
+  body {
+    background: white !important;
+    color: #000 !important;
+  }
+
+  .print-topbar {
+    display: none !important;
+  }
+
+  .print-doc {
+    padding: 16px 20px;
+    max-width: 100%;
+  }
+
+  .sidebar,
+  .topbar,
+  .main-content>header {
+    display: none !important;
+  }
+
+  .main-content {
+    margin-left: 0 !important;
+  }
+
+  .print-section {
+    break-inside: avoid;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
