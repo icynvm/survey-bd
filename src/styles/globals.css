@@ -1522,7 +1522,7 @@ tbody tr:hover {
 }
 
 .print-scale-col {
-  width: 36px;
+  width: 64px;
   text-align: center;
 }
 
@@ -1568,7 +1568,7 @@ tbody tr:hover {
 }
 
 .print-check-cell {
-  width: 36px;
+  width: 64px;
   border-left: 1px solid #ccc;
   display: flex;
   align-items: center;
