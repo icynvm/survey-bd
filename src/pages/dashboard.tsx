@@ -6,8 +6,8 @@ import Layout from '@/components/Layout';
 import { useApp } from '@/contexts/AppContext';
 import { StatusBadge } from '@/components/ui';
 import * as DB from '@/lib/db';
-import { timeAgo, formatDate } from '@/lib/utils';
-import type { Survey, SurveyResponse, User } from '@/types';
+import { timeAgo, formatDate, uid } from '@/lib/utils';
+import type { Survey, SurveyResponse, User, Question } from '@/types';
 
 export default function DashboardPage() {
     const { user, t, lang, ready } = useApp();
@@ -23,6 +23,24 @@ export default function DashboardPage() {
         setResponses(DB.getResponses());
         setUsers(DB.getUsers());
     }, [ready, user, router]);
+
+    const handleDuplicate = (e: React.MouseEvent, s: Survey) => {
+        e.preventDefault(); // prevent navigation
+        const newSurvey: Survey = {
+            ...s,
+            id: uid(),
+            title: s.title ? `${s.title} (Copy)` : 'Copy',
+            titleTh: s.titleTh ? `${s.titleTh} (สำเนา)` : '',
+            status: 'draft',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            publishedAt: null,
+            creatorId: user?.id || s.creatorId, // Set to current user so they own the copy
+            questions: s.questions.map(q => ({ ...q, id: uid() }))
+        };
+        DB.saveSurvey(newSurvey);
+        setSurveys(DB.getSurveys()); // Refresh list
+    };
 
     if (!ready || !user) return null;
 
@@ -95,6 +113,15 @@ export default function DashboardPage() {
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                                             <StatusBadge status={s.status} lang={lang} />
                                             <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{timeAgo(s.createdAt)}</span>
+                                            <button
+                                                onClick={(e) => handleDuplicate(e, s)}
+                                                title="Duplicate Survey"
+                                                style={{ width: 32, height: 32, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', cursor: 'pointer', color: 'var(--text-secondary)' }}
+                                                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--bg-card-hover)'; (e.currentTarget as HTMLElement).style.color = 'var(--primary-light)'; }}
+                                                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'; (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)'; }}
+                                            >
+                                                ⧉
+                                            </button>
                                         </div>
                                     </Link>
                                 );
