@@ -1,26 +1,23 @@
 import React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { useApp } from '@/contexts/AppContext';
-import { LangToggle } from '@/components/ui';
-import * as Auth from '@/lib/auth';
+import { LangToggle, RoleBadge } from './ui';
 
-interface LayoutProps {
-    children: React.ReactNode;
-    active: 'dashboard' | 'builder' | 'results' | 'admin' | 'surveys';
-    title?: string;
-}
+interface LayoutProps { children: React.ReactNode; active?: string; }
 
 const Layout: React.FC<LayoutProps> = ({ children, active }) => {
-    const { user, t } = useApp();
+    const { user, t, lang, logout } = useApp();
+    const router = useRouter();
     if (!user) return null;
 
     const isAdmin = user.role === 'admin';
     const isCreator = user.role === 'creator' || isAdmin;
-    const initial = (user.name[0] ?? 'U').toUpperCase();
-    const roleLabel = t(`admin.roles.${user.role}`);
+
+    const handleLogout = () => { logout(); router.push('/'); };
 
     const NavItem = ({ href, icon, label, name }: { href: string; icon: string; label: string; name: string }) => (
-        <Link href={href} className={`nav-item${active === name ? ' active' : ''}`}>
+        <Link href={href} className={`nav-item ${active === name ? 'active' : ''}`}>
             <span className="nav-icon">{icon}</span>
             <span>{label}</span>
         </Link>
@@ -39,45 +36,36 @@ const Layout: React.FC<LayoutProps> = ({ children, active }) => {
                 <nav className="sidebar-nav">
                     <NavItem href="/dashboard" icon="📊" label={t('nav.dashboard')} name="dashboard" />
                     {isCreator && <>
-                        <NavItem href="/dashboard?tab=surveys" icon="📋" label={t(isAdmin ? 'nav.allSurveys' : 'nav.surveys')} name="surveys" />
-                        <NavItem href="/builder" icon="✨" label={t('nav.create')} name="builder" />
+                        <NavItem href="/builder" icon="✨" label={isAdmin ? t('nav.allSurveys') : t('nav.surveys')} name="surveys" />
+                        <NavItem href="/builder" icon="➕" label={t('nav.create')} name="builder" />
                         <NavItem href="/results" icon="📈" label={t('nav.results')} name="results" />
                     </>}
                     {isAdmin && <>
-                        <div className="nav-section-title" style={{ marginTop: 12 }}>Admin</div>
+                        <div className="nav-section-title">Admin</div>
                         <NavItem href="/admin" icon="👥" label={t('nav.users')} name="admin" />
                     </>}
                 </nav>
                 <div className="sidebar-footer">
                     <div className="user-card">
-                        <div className="user-avatar">{initial}</div>
+                        <div className="user-avatar">{user.name[0].toUpperCase()}</div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                             <div className="user-name" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name}</div>
-                            <div className="user-role">{roleLabel}</div>
+                            <RoleBadge role={user.role} lang={lang} />
                         </div>
+                        <button onClick={handleLogout} title="Logout" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 16, padding: 4, flexShrink: 0 }}>⏻</button>
                     </div>
-                    <button
-                        className="btn btn-danger btn-sm"
-                        style={{ width: '100%', marginTop: 8 }}
-                        onClick={() => Auth.logout()}
-                    >
-                        🚪 {t('nav.logout')}
-                    </button>
                 </div>
             </aside>
             <div className="main-content">
                 <header className="topbar">
                     <div className="topbar-left">
-                        <div className="topbar-title">{t('app.name')}</div>
+                        <div className="topbar-title">{t(`nav.${active ?? 'dashboard'}`)}</div>
                     </div>
                     <div className="topbar-right">
                         <LangToggle />
-                        <div className="user-avatar" style={{ cursor: 'pointer' }}>{initial}</div>
                     </div>
                 </header>
-                <main className="page-content fade-in">
-                    {children}
-                </main>
+                <main className="page-content fade-in">{children}</main>
             </div>
         </div>
     );
