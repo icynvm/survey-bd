@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { Session, Lang } from '@/types';
 import * as DB from '@/lib/db';
+import * as Auth from '@/lib/auth';
 import { getLang, setLang as storeLang, t as translate } from '@/lib/i18n';
 
 interface AppContextValue {
@@ -9,11 +10,15 @@ interface AppContextValue {
     setLang: (l: Lang) => void;
     t: (path: string) => string;
     ready: boolean;
+    login: (email: string, password: string) => { success: boolean; error?: string };
+    logout: () => void;
 }
 
 const AppContext = createContext<AppContextValue>({
     user: null, lang: 'en',
     setLang: () => { }, t: (p) => p, ready: false,
+    login: () => ({ success: false }),
+    logout: () => { },
 });
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -32,10 +37,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         storeLang(l); setLangState(l);
     }, []);
 
+    const login = useCallback((email: string, password: string) => {
+        const result = Auth.login(email, password);
+        if (result.success) {
+            setUser(DB.getSession()); // immediately update context state
+        }
+        return result;
+    }, []);
+
+    const logout = useCallback(() => {
+        Auth.logout();
+        setUser(null);
+    }, []);
+
     const t = useCallback((path: string) => translate(lang, path), [lang]);
 
     return (
-        <AppContext.Provider value={{ user, lang, setLang, t, ready }}>
+        <AppContext.Provider value={{ user, lang, setLang, t, ready, login, logout }}>
             {children}
         </AppContext.Provider>
     );
