@@ -141,9 +141,48 @@ export default function ResultsPage() {
                                                 const chartData = getChartData(q);
                                                 const textAnswers = responses.map(r => r.answers[q.id]).filter(Boolean);
                                                 return (
-                                                    <div key={q.id} className="card">
+                                                    <div key={q.id} className="card" style={{ gridColumn: q.type === 'likert' ? '1 / -1' : 'auto' }}>
                                                         <div style={{ fontWeight: 700, marginBottom: 12, fontSize: 14 }}>{qTitle}</div>
-                                                        {chartData ? (
+                                                        {q.type === 'likert' ? (
+                                                            // Likert summary: table of rows × scale columns showing count
+                                                            (() => {
+                                                                const rows = q.likertRows ?? [];
+                                                                const scale = q.likertScale ?? ['Very Satisfied', 'Satisfied', 'Moderate', 'Need Improvement', 'Dissatisfied', 'N/A'];
+                                                                return (
+                                                                    <div style={{ overflowX: 'auto' }}>
+                                                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                                                                            <thead>
+                                                                                <tr>
+                                                                                    <th style={{ textAlign: 'left', padding: '6px 10px', borderBottom: '1px solid var(--border)', color: 'var(--text-muted)', minWidth: 160 }}>Statement</th>
+                                                                                    {scale.map((s, si) => <th key={si} style={{ textAlign: 'center', padding: '6px 8px', borderBottom: '1px solid var(--border)', color: 'var(--primary-light)', whiteSpace: 'nowrap', minWidth: 70 }}>{s}</th>)}
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                {rows.map((row, ri) => (
+                                                                                    <tr key={ri} style={{ background: ri % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)' }}>
+                                                                                        <td style={{ padding: '8px 10px', color: 'var(--text-secondary)', borderBottom: '1px solid rgba(255,255,255,0.04)', fontSize: 12 }}>{row}</td>
+                                                                                        {scale.map((s, si) => {
+                                                                                            const cnt = textAnswers.filter(a => a && typeof a === 'object' && !Array.isArray(a) && (a as Record<string, string>)[row] === s).length;
+                                                                                            const pct = textAnswers.length ? Math.round(cnt / textAnswers.length * 100) : 0;
+                                                                                            return (
+                                                                                                <td key={si} style={{ textAlign: 'center', padding: '8px 4px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                                                                                                    {cnt > 0 ? (
+                                                                                                        <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                                                                                                            <div style={{ fontWeight: 700, color: 'var(--primary-light)' }}>{cnt}</div>
+                                                                                                            <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>{pct}%</div>
+                                                                                                        </div>
+                                                                                                    ) : <span style={{ color: 'var(--border)', fontSize: 11 }}>—</span>}
+                                                                                                </td>
+                                                                                            );
+                                                                                        })}
+                                                                                    </tr>
+                                                                                ))}
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div>
+                                                                );
+                                                            })()
+                                                        ) : chartData ? (
                                                             <div style={{ maxHeight: 200, display: 'flex', justifyContent: 'center' }}>
                                                                 <Doughnut data={chartData} options={{ plugins: { legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 12 } } } }, maintainAspectRatio: false }} />
                                                             </div>
@@ -195,7 +234,30 @@ export default function ResultsPage() {
                                                 <tbody>{responses.map(r => (
                                                     <tr key={r.id}>
                                                         <td><strong>{r.respondentName || t('results.anonymous')}</strong></td>
-                                                        {selectedSurvey.questions.map(q => <td key={q.id} style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{Array.isArray(r.answers[q.id]) ? (r.answers[q.id] as string[]).join(', ') : String(r.answers[q.id] ?? '—')}</td>)}
+                                                        {selectedSurvey.questions.map(q => {
+                                                            const ans = r.answers[q.id];
+                                                            let display: React.ReactNode = '—';
+                                                            if (ans !== undefined && ans !== null && ans !== '') {
+                                                                if (q.type === 'likert' && typeof ans === 'object' && !Array.isArray(ans)) {
+                                                                    // Format as "Row: Answer" list
+                                                                    display = (
+                                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                                                            {Object.entries(ans as Record<string, string>).map(([row, val]) => (
+                                                                                <div key={row} style={{ fontSize: 11 }}>
+                                                                                    <span style={{ color: 'var(--text-muted)' }}>{row}:</span>{' '}
+                                                                                    <span style={{ color: 'var(--primary-light)', fontWeight: 600 }}>{val}</span>
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                    );
+                                                                } else if (Array.isArray(ans)) {
+                                                                    display = (ans as string[]).join(', ');
+                                                                } else {
+                                                                    display = String(ans);
+                                                                }
+                                                            }
+                                                            return <td key={q.id} style={{ color: 'var(--text-secondary)', fontSize: 13, verticalAlign: 'top', maxWidth: 220 }}>{display}</td>;
+                                                        })}
                                                         <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{formatDate(r.submittedAt, lang)}</td>
                                                     </tr>
                                                 ))}</tbody>
