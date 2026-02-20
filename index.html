@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SurveyBD — Professional Survey Management</title>
+<meta name="description" content="SurveyBD - Create, distribute, and analyze surveys with ease."/>
+<link rel="stylesheet" href="css/style.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+body { display:flex; align-items:center; justify-content:center; min-height:100vh; position:relative; overflow:hidden; }
+.bg-gradient { position:fixed; inset:0; background: radial-gradient(ellipse at 20% 50%, rgba(99,102,241,0.15) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(168,85,247,0.12) 0%, transparent 50%), radial-gradient(ellipse at 50% 100%, rgba(6,182,212,0.1) 0%, transparent 60%); pointer-events:none; }
+.orb { position:fixed; border-radius:50%; filter:blur(80px); opacity:0.4; animation:float 8s ease-in-out infinite; pointer-events:none; }
+.orb-1 { width:400px;height:400px;background:radial-gradient(circle,rgba(99,102,241,0.5),transparent);top:-100px;left:-100px; }
+.orb-2 { width:300px;height:300px;background:radial-gradient(circle,rgba(168,85,247,0.4),transparent);bottom:-80px;right:-80px;animation-delay:-3s; }
+.orb-3 { width:200px;height:200px;background:radial-gradient(circle,rgba(6,182,212,0.4),transparent);top:40%;left:60%;animation-delay:-6s; }
+@keyframes float { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-30px) scale(1.05)} }
+
+.login-wrapper { width:100%;max-width:460px;padding:20px;position:relative;z-index:10;animation:slideUp 0.6s ease; }
+.login-card { background:rgba(13,13,36,0.85);backdrop-filter:blur(40px);border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:40px;box-shadow:0 20px 80px rgba(0,0,0,0.5),0 0 60px rgba(99,102,241,0.1); }
+.login-logo { display:flex;align-items:center;gap:14px;margin-bottom:32px; }
+.logo-icon { width:52px;height:52px;background:linear-gradient(135deg,#6366f1,#a855f7);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 8px 24px rgba(99,102,241,0.4); }
+.logo-text h1 { font-size:26px;font-weight:800;background:linear-gradient(135deg,#6366f1,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+.logo-text p { font-size:12px;color:var(--text-muted);margin-top:2px; }
+.login-heading { font-size:24px;font-weight:800;margin-bottom:6px; }
+.login-sub { font-size:14px;color:var(--text-muted);margin-bottom:28px; }
+.input-wrapper { position:relative; }
+.input-wrapper i { position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:14px; }
+.input-wrapper .form-input { padding-left:40px; }
+.btn-login { width:100%;padding:13px;font-size:15px;font-weight:700;background:linear-gradient(135deg,#6366f1,#a855f7);border:none;border-radius:var(--radius-md);color:white;cursor:pointer;transition:var(--transition);box-shadow:0 4px 20px rgba(99,102,241,0.4);letter-spacing:0.3px; }
+.btn-login:hover { transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,0.5); }
+.btn-login:active { transform:translateY(0); }
+.error-msg { background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:var(--radius-md);padding:10px 14px;color:#fca5a5;font-size:13px;margin-top:12px;display:none; }
+.demo-section { margin-top:24px;padding-top:20px;border-top:1px solid var(--border); }
+.demo-title { font-size:12px;color:var(--text-muted);text-align:center;margin-bottom:10px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase; }
+.demo-accounts { display:grid;grid-template-columns:repeat(3,1fr);gap:8px; }
+.demo-chip { padding:8px 6px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:var(--radius-md);text-align:center;cursor:pointer;transition:var(--transition); }
+.demo-chip:hover { background:rgba(99,102,241,0.1);border-color:rgba(99,102,241,0.3);transform:translateY(-1px); }
+.demo-chip-name { font-size:12px;font-weight:700;margin-top:4px; }
+.demo-chip-email { font-size:10px;color:var(--text-muted);margin-top:2px; }
+.lang-top { position:absolute;top:20px;right:20px;z-index:20; }
+</style>
+</head>
+<body>
+<div class="bg-gradient"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<div class="lang-top">
+  <div class="lang-toggle">
+    <button class="lang-btn active" data-lang="en" onclick="I18n.setLang('en')">EN</button>
+    <button class="lang-btn" data-lang="th" onclick="I18n.setLang('th')">TH</button>
+  </div>
+</div>
+
+<div class="login-wrapper">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">📊</div>
+      <div class="logo-text">
+        <h1 id="app-name">SurveyBD</h1>
+        <p id="app-tagline" data-i18n="app.tagline">Professional Survey Management System</p>
+      </div>
+    </div>
+    <div class="login-heading" data-i18n="login.welcome">Welcome Back</div>
+    <div class="login-sub" data-i18n="login.subtitle">Sign in to your account</div>
+    <form id="login-form" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label class="form-label" data-i18n="login.email">Email Address</label>
+        <div class="input-wrapper">
+          <i class="fas fa-envelope"></i>
+          <input class="form-input" type="email" id="login-email" data-i18n-placeholder="login.email" placeholder="Email Address" required autocomplete="email"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="login.password">Password</label>
+        <div class="input-wrapper">
+          <i class="fas fa-lock"></i>
+          <input class="form-input" type="password" id="login-password" data-i18n-placeholder="login.password" placeholder="Password" required autocomplete="current-password"/>
+          <button type="button" onclick="togglePw()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:14px" id="pw-toggle"><i class="fas fa-eye"></i></button>
+        </div>
+      </div>
+      <div id="error-msg" class="error-msg" data-i18n="login.invalidCred">Invalid email or password.</div>
+      <button type="submit" class="btn-login" id="login-btn">
+        <span data-i18n="login.loginBtn">Sign In</span>
+      </button>
+    </form>
+    <div class="demo-section">
+      <div class="demo-title" data-i18n="login.demoAccounts">Demo Accounts</div>
+      <div class="demo-accounts">
+        <div class="demo-chip" onclick="fillDemo('admin@survey.com','admin123')">
+          <div style="font-size:20px">🔑</div>
+          <div class="demo-chip-name" data-i18n="login.adminAcc">Admin</div>
+          <div class="demo-chip-email">admin@survey.com</div>
+        </div>
+        <div class="demo-chip" onclick="fillDemo('creator@survey.com','creator123')">
+          <div style="font-size:20px">✏️</div>
+          <div class="demo-chip-name" data-i18n="login.creatorAcc">Creator</div>
+          <div class="demo-chip-email">creator@survey.com</div>
+        </div>
+        <div class="demo-chip" onclick="fillDemo('user@survey.com','user123')">
+          <div style="font-size:20px">👤</div>
+          <div class="demo-chip-name" data-i18n="login.userAcc">Respondent</div>
+          <div class="demo-chip-email">user@survey.com</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/i18n.js"></script>
+<script src="js/utils.js"></script>
+<script>
+  // Redirect if already logged in
+  if (Auth.getUser()) window.location.href = 'dashboard.html';
+
+  I18n.init();
+
+  function togglePw() {
+    const inp = document.getElementById('login-password');
+    const ico = document.querySelector('#pw-toggle i');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+    ico.className = inp.type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+  }
+
+  function fillDemo(email, pw) {
+    document.getElementById('login-email').value = email;
+    document.getElementById('login-password').value = pw;
+    document.getElementById('error-msg').style.display = 'none';
+  }
+
+  function handleLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value.trim();
+    const pw = document.getElementById('login-password').value;
+    const btn = document.getElementById('login-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    setTimeout(() => {
+      const result = Auth.login(email, pw);
+      if (result.success) {
+        window.location.href = 'dashboard.html';
+      } else {
+        document.getElementById('error-msg').style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = `<span data-i18n="login.loginBtn">${I18n.t('login.loginBtn')}</span>`;
+      }
+    }, 600);
+  }
+</script>
+</body>
+</html>
