@@ -3,7 +3,6 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { useApp } from '@/contexts/AppContext';
 import { LangToggle } from '@/components/ui';
-import * as Auth from '@/lib/auth';
 
 const DEMO = [
     { role: '🔑 Admin', email: 'admin@survey.com', pw: 'admin123' },
@@ -12,7 +11,7 @@ const DEMO = [
 ];
 
 export default function LoginPage() {
-    const { user, t, ready } = useApp();
+    const { user, t, ready, login } = useApp();
     const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -27,7 +26,7 @@ export default function LoginPage() {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true); setError('');
-        const result = Auth.login(email, password);
+        const result = login(email, password); // uses context login — updates user state immediately
         if (result.success) {
             router.push('/dashboard');
         } else {
@@ -37,6 +36,8 @@ export default function LoginPage() {
 
     const fillDemo = (e: string, p: string) => { setEmail(e); setPassword(p); setError(''); };
 
+    if (!ready) return null;
+
     return (
         <>
             <Head><title>Login | SurveyBD</title></Head>
@@ -44,7 +45,7 @@ export default function LoginPage() {
                 <div className="auth-bg">
                     <div className="auth-orb orb1" /><div className="auth-orb orb2" /><div className="auth-orb orb3" />
                 </div>
-                <div style={{ position: 'absolute', top: 16, right: 16 }}><LangToggle /></div>
+                <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 10 }}><LangToggle /></div>
                 <div className="auth-card glass fade-in">
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
                         <div className="sidebar-logo" style={{ width: 48, height: 48, fontSize: 24 }}>📊</div>
@@ -60,20 +61,20 @@ export default function LoginPage() {
                             <label className="form-label">{t('login.email')}</label>
                             <div style={{ position: 'relative' }}>
                                 <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>✉</span>
-                                <input className="form-input" style={{ paddingLeft: 36 }} type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder={t('login.email')} required />
+                                <input className="form-input" style={{ paddingLeft: 36 }} type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="admin@survey.com" required />
                             </div>
                         </div>
                         <div className="form-group">
                             <label className="form-label">{t('login.password')}</label>
                             <div style={{ position: 'relative' }}>
                                 <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>🔒</span>
-                                <input className="form-input" style={{ paddingLeft: 36, paddingRight: 40 }} type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder={t('login.password')} required />
-                                <button type="button" onClick={() => setShowPw(!showPw)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>{showPw ? '🙈' : '👁'}</button>
+                                <input className="form-input" style={{ paddingLeft: 36, paddingRight: 40 }} type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required />
+                                <button type="button" onClick={() => setShowPw(!showPw)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 16 }}>{showPw ? '🙈' : '👁'}</button>
                             </div>
                         </div>
                         {error && <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, padding: '10px 14px', color: '#fca5a5', fontSize: 13, marginBottom: 12 }}>{error}</div>}
-                        <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '12px', fontSize: 15, fontWeight: 700 }} disabled={loading}>
-                            {loading ? t('common.loading') : t('login.loginBtn')}
+                        <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '12px', fontSize: 15, fontWeight: 700, marginTop: 4 }} disabled={loading}>
+                            {loading ? '⏳ ' + t('common.loading') : '🚀 ' + t('login.loginBtn')}
                         </button>
                     </form>
                     <div style={{ marginTop: 24, textAlign: 'center' }}>
