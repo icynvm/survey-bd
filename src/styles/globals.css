@@ -554,7 +554,8 @@ select {
 }
 
 .card:hover {
-  border-color: rgba(0, 61, 165, 0.2);
+  border-color: var(--primary-light);
+  box-shadow: var(--shadow-glow);
 }
 
 .card-header {
@@ -674,7 +675,7 @@ select {
 .form-input {
   width: 100%;
   padding: 10px 14px;
-  background: #FFFFFF;
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   color: var(--text-primary);
@@ -684,8 +685,8 @@ select {
 
 .form-input:focus {
   border-color: var(--border-focus);
-  background: #FFFFFF;
-  box-shadow: 0 0 0 3px rgba(0, 61, 165, 0.1);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(0, 61, 165, 0.3);
 }
 
 .form-input::placeholder {
@@ -704,7 +705,7 @@ select.form-input {
 .form-select {
   width: 100%;
   padding: 10px 14px;
-  background: #FFFFFF;
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   color: var(--text-primary);
@@ -835,7 +836,8 @@ tbody tr:hover {
 }
 
 .modal {
-  background: #12122e;
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   padding: 28px;
