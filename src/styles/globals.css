@@ -1213,8 +1213,27 @@ tbody tr:hover {
 }
 
 @media (max-width: 768px) {
+  .sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 90;
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.3s ease;
+  }
+
+  .sidebar-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
   .sidebar {
     transform: translateX(-100%);
+    z-index: 100 !important;
   }
 
   .sidebar.open {
@@ -1224,6 +1243,28 @@ tbody tr:hover {
 
   .main-content {
     margin-left: 0;
+  }
+
+  .builder-settings {
+    position: fixed !important;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 320px;
+    max-width: 85vw;
+    background: var(--bg-secondary) !important;
+    border-left: 1px solid var(--border);
+    z-index: 100;
+    transform: translateX(100%);
+    /* Hidden by default off right edge */
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+    padding: 16px;
+    overflow-y: auto;
+  }
+
+  .builder-settings.open {
+    transform: translateX(0);
   }
 
   .grid-2,
