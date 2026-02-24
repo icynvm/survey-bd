@@ -121,8 +121,11 @@ export default function PrintSurveyPage() {
                                             <div className="print-question-text" style={{ paddingRight: 12 }}>
                                                 <div style={{ fontWeight: 500 }}>{row}</div>
                                                 {q.likertRowHasOther?.[ri] && (
-                                                    <div style={{ marginTop: 8, borderBottom: '1px dashed #ccc', height: 16, width: '100%' }}>
+                                                    <div style={{ marginTop: 8, borderBottom: '1px dashed #ccc', height: 16, width: '100%', position: 'relative' }}>
                                                         <span style={{ fontSize: '9pt', color: '#888', fontStyle: 'italic', background: '#fff', paddingRight: 4, position: 'relative', top: -5 }}>Please specify:</span>
+                                                        <span style={{ fontSize: '10pt', color: '#333', marginLeft: 6, position: 'relative', top: -4 }}>{
+                                                            ans(`${q.id}_${ri}`) ? String(ans(`${q.id}_${ri}`)).replace(/^Other:\s*/, '') : ''
+                                                        }</span>
                                                     </div>
                                                 )}
                                             </div>
