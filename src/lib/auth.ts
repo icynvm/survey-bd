@@ -3,11 +3,19 @@ import * as DB from './db';
 
 export const login = (email: string, password: string): { success: boolean; user?: User } => {
     const user = DB.getUsers().find(u => u.email === email && u.password === password && u.isActive);
-    if (user) { DB.setSession(user); return { success: true, user }; }
+    if (user) {
+        DB.setSession(user);
+        DB.saveLog({ userId: user.id, userName: user.name, action: 'login', timestamp: new Date().toISOString() });
+        return { success: true, user };
+    }
     return { success: false };
 };
 
 export const logout = (): void => {
+    const user = DB.getSession();
+    if (user) {
+        DB.saveLog({ userId: user.id, userName: user.name, action: 'logout', timestamp: new Date().toISOString() });
+    }
     DB.clearSession();
     window.location.href = '/';
 };
