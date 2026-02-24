@@ -43,6 +43,7 @@ export default function BuilderPage() {
     const [selectedQId, setSelectedQId] = useState<string | null>(null);
     const [shareOpen, setShareOpen] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [settingsOpen, setSettingsOpen] = useState(false);
     const [isDirty, setIsDirty] = useState(false);
     const dragSrcRef = useRef<string | null>(null);
 
@@ -357,7 +358,7 @@ export default function BuilderPage() {
                                                 setSurvey(s => { if (!s) return s; const qs = [...s.questions]; const si = qs.findIndex(x => x.id === src); const ti = qs.findIndex(x => x.id === q.id); const [r] = qs.splice(si, 1); qs.splice(ti, 0, r); return { ...s, questions: qs }; });
                                                 dragSrcRef.current = null;
                                             }}
-                                            onClick={() => setSelectedQId(q.id)}
+                                            onClick={() => { setSelectedQId(q.id); setSettingsOpen(true); }}
                                             style={{
                                                 background: selectedQId === q.id ? 'var(--bg-card-hover)' : 'var(--bg-card)',
                                                 border: `1px solid ${selectedQId === q.id ? 'var(--primary)' : 'var(--border)'}`,
@@ -397,7 +398,13 @@ export default function BuilderPage() {
                             </div>
                         </div>
                         {/* Settings panel */}
-                        <div style={{ background: 'var(--bg-secondary)', borderLeft: '1px solid var(--border)', padding: 16, overflowY: 'auto' }}>
+                        {settingsOpen && <div className="sidebar-overlay open show-on-mobile" onClick={() => setSettingsOpen(false)} />}
+                        <div className={`builder-settings ${settingsOpen ? 'open' : ''}`}>
+                            <div className="show-on-mobile" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+                                <button className="icon-btn" onClick={() => setSettingsOpen(false)} style={{ border: 'none', background: 'var(--bg-card)', width: 32, height: 32, boxShadow: 'var(--shadow-sm)' }}>
+                                    <FiX size={18} />
+                                </button>
+                            </div>
                             {renderSettings()}
                         </div>
                     </div>
