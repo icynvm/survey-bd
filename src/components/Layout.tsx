@@ -43,7 +43,7 @@ const Layout: React.FC<LayoutProps> = ({ children, active }) => {
                 <nav className="sidebar-nav">
                     <NavItem href="/dashboard" icon="▣" label={t('nav.dashboard')} name="dashboard" />
                     {isCreator && <>
-                        <NavItem href="/builder" icon="□" label={isAdmin ? t('nav.allSurveys') : t('nav.surveys')} name="surveys" />
+                        <NavItem href="/dashboard" icon="📋" label={isAdmin ? t('nav.allSurveys') : t('nav.surveys')} name="surveys" />
                         <NavItem href="/builder" icon="+" label={t('nav.create')} name="builder" />
                         <NavItem href="/results" icon="≡" label={t('nav.results')} name="results" />
                     </>}
