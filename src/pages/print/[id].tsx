@@ -135,7 +135,6 @@ export default function PrintSurveyPage() {
                                             </div>
                                         </div>
                                     ))}
-                                    ))}
                                     {q.description && (
                                         <div className="print-text-row">
                                             <em>{q.description}</em>
