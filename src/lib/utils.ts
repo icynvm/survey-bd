@@ -70,6 +70,7 @@ export const QUESTION_TYPE_INFO: Record<QuestionType, QuestionTypeInfo> = {
     date: { icon: '◫', color: '#888', en: 'Date', th: 'วันที่' },
     yes_no: { icon: '⊘', color: '#888', en: 'Yes / No', th: 'ใช่ / ไม่' },
     likert: { icon: '▦', color: '#888', en: 'Likert Scale', th: 'ลิเคิร์ท (ความพึงพอใจ)' },
+    section: { icon: '🔖', color: 'var(--primary)', en: 'Section Label', th: 'หัวข้อหลัก' },
 };
 
 export const exportToCSV = (headers: string[], rows: (string | number)[][], filename: string): void => {
