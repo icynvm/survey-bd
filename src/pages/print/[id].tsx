@@ -135,6 +135,12 @@ export default function PrintSurveyPage() {
                                             </div>
                                         </div>
                                     ))}
+                                    {q.hasOther && (
+                                        <div className="print-text-row" style={{ marginTop: 4 }}>
+                                            <em style={{ fontSize: '10pt', color: '#555' }}>Please specify problem area:</em>
+                                            <div className="print-text-answer" />
+                                        </div>
+                                    )}
                                     {q.description && (
                                         <div className="print-text-row">
                                             <em>{q.description}</em>
