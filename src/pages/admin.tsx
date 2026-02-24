@@ -12,11 +12,10 @@ import type { User, Role } from '@/types';
 const ROLE_META: { role: Role; icon: string; color: string }[] = [
     { role: 'admin', icon: '🔑', color: 'rgba(239,68,68,0.15)' },
     { role: 'creator', icon: '✏️', color: 'rgba(99,102,241,0.15)' },
-    { role: 'respondent', icon: '👤', color: 'rgba(16,185,129,0.15)' },
 ];
 
 interface UserFormState { name: string; email: string; role: Role; password: string; password2: string; isActive: boolean; }
-const emptyForm = (): UserFormState => ({ name: '', email: '', role: 'respondent', password: '', password2: '', isActive: true });
+const emptyForm = (): UserFormState => ({ name: '', email: '', role: 'creator', password: '', password2: '', isActive: true });
 
 export default function AdminPage() {
     const { user, t, lang, ready } = useApp();
@@ -150,7 +149,7 @@ export default function AdminPage() {
                                 <div className="form-group"><label className="form-label">{t('admin.email')}</label><input className="form-input" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required /></div>
                                 <div className="form-group">
                                     <label className="form-label">{t('admin.role')}</label>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8 }}>
                                         {ROLE_META.map(rm => (
                                             <div key={rm.role} onClick={() => setForm(f => ({ ...f, role: rm.role }))} style={{ padding: '10px 8px', border: `2px solid ${form.role === rm.role ? 'var(--primary)' : 'var(--border)'}`, borderRadius: 8, cursor: 'pointer', textAlign: 'center', background: form.role === rm.role ? 'rgba(99,102,241,0.1)' : 'transparent' }}>
                                                 <div style={{ fontSize: 20 }}>{rm.icon}</div>
