@@ -27,22 +27,22 @@ const Layout: React.FC<LayoutProps> = ({ children, active }) => {
         <div className="app-layout">
             <aside className="sidebar">
                 <div className="sidebar-brand">
-                    <div className="sidebar-logo">📊</div>
+                    <div className="sidebar-logo" style={{ background: 'rgba(255,255,255,0.08)', fontSize: 18 }}>⬡</div>
                     <div>
                         <div className="sidebar-title">{t('app.name')}</div>
                         <div className="sidebar-subtitle">{t('app.tagline')}</div>
                     </div>
                 </div>
                 <nav className="sidebar-nav">
-                    <NavItem href="/dashboard" icon="📊" label={t('nav.dashboard')} name="dashboard" />
+                    <NavItem href="/dashboard" icon="▣" label={t('nav.dashboard')} name="dashboard" />
                     {isCreator && <>
-                        <NavItem href="/builder" icon="✨" label={isAdmin ? t('nav.allSurveys') : t('nav.surveys')} name="surveys" />
-                        <NavItem href="/builder" icon="➕" label={t('nav.create')} name="builder" />
-                        <NavItem href="/results" icon="📈" label={t('nav.results')} name="results" />
+                        <NavItem href="/builder" icon="□" label={isAdmin ? t('nav.allSurveys') : t('nav.surveys')} name="surveys" />
+                        <NavItem href="/builder" icon="+" label={t('nav.create')} name="builder" />
+                        <NavItem href="/results" icon="≡" label={t('nav.results')} name="results" />
                     </>}
                     {isAdmin && <>
                         <div className="nav-section-title">Admin</div>
-                        <NavItem href="/admin" icon="👥" label={t('nav.users')} name="admin" />
+                        <NavItem href="/admin" icon="⊙" label={t('nav.users')} name="admin" />
                     </>}
                 </nav>
                 <div className="sidebar-footer">
