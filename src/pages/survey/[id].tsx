@@ -93,6 +93,7 @@ export default function SurveyPage() {
         const newErrors: Record<string, boolean> = {};
         let valid = true;
         survey.questions.forEach(q => {
+            if (q.type === 'section') return;
             if (q.required) {
                 const ans = answers[q.id];
                 if (q.type === 'likert') {
@@ -125,14 +126,27 @@ export default function SurveyPage() {
         setSubmitted(true);
     };
 
+    const qCount = survey.questions.filter(q => q.type !== 'section').length;
     const progress = survey.settings.showProgress
-        ? Math.round(Object.keys(answers).length / Math.max(survey.questions.length, 1) * 100) : 0;
+        ? Math.round(Object.keys(answers).length / Math.max(qCount, 1) * 100) : 0;
 
     const renderQuestion = (q: Question, i: number) => {
         const qtitle = lang === 'th' && q.titleTh ? q.titleTh : q.title;
         const qdesc = lang === 'th' && q.descriptionTh ? q.descriptionTh : q.description;
         const options = (lang === 'th' && q.optionsTh ? q.optionsTh : q.options) ?? [];
         const err = errors[q.id];
+
+        if (q.type === 'section') {
+            return (
+                <div key={q.id} style={{ margin: '40px 0 20px', padding: '12px 0', borderBottom: '2px solid var(--primary)', position: 'relative' }}>
+                    <div style={{ position: 'absolute', left: 0, bottom: -2, width: 40, height: 2, background: 'var(--primary-light)' }}></div>
+                    <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>{qtitle || '(Untitled Section)'}</h2>
+                    {qdesc && <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 8, fontStyle: 'italic' }}>{qdesc}</p>}
+                </div>
+            );
+        }
+
+        const qNum = survey.questions.slice(0, i).filter(qu => qu.type !== 'section').length + 1;
 
         const scale = lang === 'th' ? (q.likertScaleTh ?? DEFAULT_LIKERT_SCALE_TH) : (q.likertScale ?? DEFAULT_LIKERT_SCALE);
         const rows = lang === 'th' ? (q.likertRowsTh ?? q.likertRows ?? []) : (q.likertRows ?? []);
@@ -141,7 +155,7 @@ export default function SurveyPage() {
             <div key={q.id} style={{ background: 'var(--bg-card)', border: `1px solid ${err ? 'var(--danger)' : 'var(--border)'}`, borderRadius: 12, padding: 20, marginBottom: 16 }}>
                 {/* Question header */}
                 <div style={{ display: 'flex', gap: 10, marginBottom: qdesc ? 4 : 14, alignItems: 'flex-start' }}>
-                    <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0, marginTop: 1 }}>{i + 1}</div>
+                    <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0, marginTop: 1 }}>{qNum}</div>
                     <div style={{ flex: 1 }}>
                         <div style={{ fontWeight: 600, fontSize: 15 }}>{qtitle}{q.required && <span style={{ color: 'var(--danger)', marginLeft: 4 }}>*</span>}</div>
                         {err && <div style={{ fontSize: 12, color: 'var(--danger)', marginTop: 2 }}>⚠ {t('common.required')}</div>}
