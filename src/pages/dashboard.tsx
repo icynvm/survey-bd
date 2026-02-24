@@ -8,6 +8,7 @@ import { StatusBadge } from '@/components/ui';
 import * as DB from '@/lib/db';
 import { timeAgo, formatDate, uid } from '@/lib/utils';
 import type { Survey, SurveyResponse, User, Question } from '@/types';
+import { FiClipboard, FiMail, FiSmartphone, FiUsers, FiTrendingUp } from 'react-icons/fi';
 
 export default function DashboardPage() {
     const { user, t, lang, ready } = useApp();
@@ -53,12 +54,12 @@ export default function DashboardPage() {
     const recentActivity = [...responses].sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()).slice(0, 6);
 
     const stats = [
-        { icon: '📋', color: 'rgba(99,102,241,0.15)', label: t('dashboard.totalSurveys'), value: mySurveys.length, change: '+2' },
-        { icon: '📨', color: 'rgba(16,185,129,0.15)', label: t('dashboard.totalResponses'), value: totalResponses, change: '+12' },
-        { icon: '🟢', color: 'rgba(6,182,212,0.15)', label: t('dashboard.activeSurveys'), value: activeSurveys.length, change: '' },
+        { icon: <FiClipboard size={24} />, color: 'rgba(99,102,241,0.15)', label: t('dashboard.totalSurveys'), value: mySurveys.length, change: '+2' },
+        { icon: <FiMail size={22} />, color: 'rgba(16,185,129,0.15)', label: t('dashboard.totalResponses'), value: totalResponses, change: '+12' },
+        { icon: <FiSmartphone size={22} />, color: 'rgba(6,182,212,0.15)', label: t('dashboard.activeSurveys'), value: activeSurveys.length, change: '' },
         isAdmin
-            ? { icon: '👥', color: 'rgba(245,158,11,0.15)', label: t('dashboard.totalUsers'), value: users.length, change: '+1' }
-            : { icon: '📈', color: 'rgba(168,85,247,0.15)', label: t('dashboard.responseRate'), value: mySurveys.length ? `${Math.round(totalResponses / Math.max(mySurveys.length, 1) * 10)}%` : '0%', change: '' },
+            ? { icon: <FiUsers size={24} />, color: 'rgba(245,158,11,0.15)', label: t('dashboard.totalUsers'), value: users.length, change: '+1' }
+            : { icon: <FiTrendingUp size={24} />, color: 'rgba(168,85,247,0.15)', label: t('dashboard.responseRate'), value: mySurveys.length ? `${Math.round(totalResponses / Math.max(mySurveys.length, 1) * 10)}%` : '0%', change: '' },
     ];
 
     return (
