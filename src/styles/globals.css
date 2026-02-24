@@ -1,24 +1,24 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --bg-primary: #050505;
-  --bg-secondary: #0a0a0a;
-  --bg-card: rgba(255, 255, 255, 0.03);
-  --bg-card-hover: rgba(255, 255, 255, 0.06);
-  --border: rgba(255, 255, 255, 0.12);
-  --border-focus: rgba(255, 255, 255, 0.3);
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #F1F5F9;
+  --border: #E2E8F0;
+  --border-focus: #003DA5;
   --primary: #003DA5;
   --primary-dark: #002D7A;
   --primary-light: #3364B7;
   --secondary: #E84E0F;
   --accent: #E84E0F;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --info: #3b82f6;
-  --text-primary: #ffffff;
-  --text-secondary: #a3a3a3;
-  --text-muted: #737373;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --info: #3B82F6;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #94A3B8;
   --gradient: linear-gradient(135deg, #003DA5, #E84E0F);
   --gradient-accent: linear-gradient(135deg, #E84E0F, #003DA5);
   --sidebar-w: 260px;
@@ -27,8 +27,8 @@
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 24px;
-  --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
-  --shadow-glow: 0 0 40px rgba(0, 61, 165, 0.2);
+  --shadow: 0 4px 20px rgba(0, 61, 165, 0.08);
+  --shadow-glow: 0 0 30px rgba(0, 61, 165, 0.1);
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -91,7 +91,7 @@ select {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.4);
+  background: rgba(0, 61, 165, 0.2);
   border-radius: 99px;
 }
 
@@ -136,7 +136,7 @@ select {
 
 .topbar {
   height: var(--topbar-h);
-  background: rgba(7, 7, 20, 0.8);
+  background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);
   display: flex;
@@ -224,8 +224,8 @@ select {
 }
 
 .nav-item.active {
-  background: rgba(99, 102, 241, 0.15);
-  color: var(--primary-light);
+  background: rgba(0, 61, 165, 0.08);
+  color: var(--primary);
 }
 
 .nav-item .nav-icon {
@@ -377,12 +377,12 @@ select {
 .btn-primary {
   background: var(--gradient);
   color: white;
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 4px 15px rgba(0, 61, 165, 0.25);
 }
 
 .btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5);
+  box-shadow: 0 8px 25px rgba(0, 61, 165, 0.35);
 }
 
 .btn-secondary {
@@ -435,7 +435,7 @@ select {
 }
 
 .card:hover {
-  border-color: rgba(99, 102, 241, 0.2);
+  border-color: rgba(0, 61, 165, 0.2);
 }
 
 .card-header {
@@ -555,7 +555,7 @@ select {
 .form-input {
   width: 100%;
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.05);
+  background: #FFFFFF;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   color: var(--text-primary);
@@ -565,8 +565,8 @@ select {
 
 .form-input:focus {
   border-color: var(--border-focus);
-  background: rgba(99, 102, 241, 0.05);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(0, 61, 165, 0.1);
 }
 
 .form-input::placeholder {
@@ -585,7 +585,7 @@ select.form-input {
 .form-select {
   width: 100%;
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.05);
+  background: #FFFFFF;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   color: var(--text-primary);
