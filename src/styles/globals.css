@@ -1283,6 +1283,7 @@ tbody tr:hover {
 
   .builder-settings.open {
     transform: translateX(0);
+    display: block !important;
   }
 
   .grid-2,
@@ -1331,6 +1332,8 @@ tbody tr:hover {
   border-left: 1px solid var(--border);
   padding: 20px;
   overflow-y: auto;
+  display: block;
+  /* Ensure visible on desktop */
 }
 
 /* ── DASHBOARD LAYOUT ── */
