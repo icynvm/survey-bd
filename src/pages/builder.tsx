@@ -60,6 +60,28 @@ export default function BuilderPage() {
         setSurvey(id ? (DB.getSurveyById(id) ?? newSurvey()) : newSurvey());
     }, [ready, user, router.query.id, router, newSurvey]);
 
+    /* ── Unsaved changes prompt ── */
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (isDirty) { e.preventDefault(); e.returnValue = ''; }
+        };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [isDirty]);
+
+    useEffect(() => {
+        const handleRouteChange = (url: string) => {
+            if (isDirty) {
+                if (!window.confirm("You have unsaved changes! Are you sure you want to leave without saving?")) {
+                    router.events.emit('routeChangeError');
+                    throw 'routeChange aborted.';
+                }
+            }
+        };
+        router.events.on('routeChangeStart', handleRouteChange);
+        return () => router.events.off('routeChangeStart', handleRouteChange);
+    }, [isDirty, router.events]);
+
     if (!ready || !user || !survey) return null;
 
     const updateSurvey = (upd: Partial<Survey>) => { setSurvey(s => s ? { ...s, ...upd } : s); setIsDirty(true); };
@@ -135,29 +157,6 @@ export default function BuilderPage() {
     };
 
     const surveyUrl = typeof window !== 'undefined' ? `${window.location.origin}/survey/${survey.id}` : '';
-
-    /* ── Unsaved changes prompt ── */
-    useEffect(() => {
-        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-            if (isDirty) { e.preventDefault(); e.returnValue = ''; }
-        };
-        window.addEventListener('beforeunload', handleBeforeUnload);
-        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-    }, [isDirty]);
-
-    useEffect(() => {
-        const handleRouteChange = (url: string) => {
-            if (isDirty) {
-                if (!window.confirm("You have unsaved changes! Are you sure you want to leave without saving?")) {
-                    router.events.emit('routeChangeError');
-                    throw 'routeChange aborted.';
-                }
-            }
-        };
-        router.events.on('routeChangeStart', handleRouteChange);
-        return () => router.events.off('routeChangeStart', handleRouteChange);
-    }, [isDirty, router.events]);
-
     /* ── Settings panel content ── */
     const renderSettings = () => {
         if (!selectedQ) return (
