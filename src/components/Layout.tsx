@@ -1,14 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useApp } from '@/contexts/AppContext';
 import { LangToggle, RoleBadge } from './ui';
+import { FiMenu } from 'react-icons/fi';
 
 interface LayoutProps { children: React.ReactNode; active?: string; }
 
 const Layout: React.FC<LayoutProps> = ({ children, active }) => {
     const { user, t, lang, logout } = useApp();
     const router = useRouter();
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
     if (!user) return null;
 
     const isAdmin = user.role === 'admin';
@@ -25,7 +28,8 @@ const Layout: React.FC<LayoutProps> = ({ children, active }) => {
 
     return (
         <div className="app-layout">
-            <aside className="sidebar">
+            {sidebarOpen && <div className="sidebar-overlay open" onClick={() => setSidebarOpen(false)} />}
+            <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
                 <div className="sidebar-brand">
                     <div className="sidebar-logo" style={{ background: 'rgba(255,255,255,0.08)', fontSize: 18 }}>⬡</div>
                     <div>
@@ -58,7 +62,10 @@ const Layout: React.FC<LayoutProps> = ({ children, active }) => {
             </aside>
             <div className="main-content">
                 <header className="topbar">
-                    <div className="topbar-left">
+                    <div className="topbar-left" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <button className="show-on-mobile btn btn-secondary btn-sm" onClick={() => setSidebarOpen(true)} style={{ width: 32, height: 32, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <FiMenu size={18} />
+                        </button>
                         <div className="topbar-title">{t(`nav.${active ?? 'dashboard'}`)}</div>
                     </div>
                     <div className="topbar-right">
