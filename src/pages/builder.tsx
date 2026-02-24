@@ -20,11 +20,12 @@ const ICON_MAP: Record<QuestionType, React.ReactNode> = {
     scale: <FiSliders size={16} />,
     dropdown: <FiChevronDown size={16} />,
     date: <FiCalendar size={16} />,
-    yes_no: <FiToggleRight size={16} />
+    yes_no: <FiToggleRight size={16} />,
+    section: <span style={{ fontSize: 16 }}>🔖</span>
 };
 
 const Q_TYPES: QuestionType[] = [
-    'likert', 'multiple_choice', 'checkboxes', 'short_text', 'long_text',
+    'section', 'likert', 'multiple_choice', 'checkboxes', 'short_text', 'long_text',
     'rating', 'scale', 'dropdown', 'date', 'yes_no',
 ];
 
@@ -371,8 +372,14 @@ export default function BuilderPage() {
                                             <span style={{ color: 'var(--text-muted)', cursor: 'grab', fontSize: 14, marginTop: 2 }}>⠿</span>
                                             <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>{i + 1}</div>
                                             <div style={{ flex: 1, minWidth: 0 }}>
-                                                <div style={{ fontSize: 15, fontWeight: 600 }}>{title}{q.required && <span style={{ color: 'var(--danger)', marginLeft: 4 }}>*</span>}</div>
-                                                {desc && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{desc}</div>}
+                                                {q.type === 'section' ? (
+                                                    <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--primary-light)' }}>{title}</div>
+                                                ) : (
+                                                    <>
+                                                        <div style={{ fontSize: 15, fontWeight: 600 }}>{title}{q.required && <span style={{ color: 'var(--danger)', marginLeft: 4 }}>*</span>}</div>
+                                                        {desc && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{desc}</div>}
+                                                    </>
+                                                )}
                                                 <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
                                                     {ICON_MAP[q.type]} {lang === 'th' ? info.th : info.en}{q.type === 'likert' && ` · ${(q.likertRows ?? []).length} rows`}{q.hasOther && ' · +Other'}
                                                 </div>
