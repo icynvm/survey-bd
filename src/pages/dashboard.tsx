@@ -74,7 +74,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Stats */}
-                <div className="stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20, marginBottom: 24 }}>
+                <div className="stat-grid">
                     {stats.map((s, i) => (
                         <div key={i} className="stat-card">
                             <div className="stat-icon" style={{ background: s.color }}>{s.icon}</div>
@@ -86,7 +86,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Recent grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 20 }}>
+                <div className="dashboard-recent-grid">
                     {/* Surveys */}
                     <div className="card">
                         <div className="card-header">
