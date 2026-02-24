@@ -48,6 +48,21 @@ export default function SurveyPage() {
         } catch { /* ignore */ }
     }, [ready, id]);
 
+    // Auto-save draft to localStorage (debounced)
+    const scheduleDraftSave = useCallback((ans: Record<string, AnswerValue>, other: Record<string, string>) => {
+        if (!draftKey) return;
+        if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = setTimeout(() => {
+            try {
+                localStorage.setItem(draftKey, JSON.stringify({ answers: ans, otherText: other }));
+                setDraftSaved(true);
+                setTimeout(() => setDraftSaved(false), 2000);
+            } catch { /* quota exceeded */ }
+        }, 500);
+    }, [draftKey]);
+
+
+
     if (!ready || router.isFallback) return null;
     if (notFound) return (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', flexDirection: 'column', gap: 12, color: 'var(--text-muted)', background: 'var(--bg-primary)' }}>
@@ -73,20 +88,6 @@ export default function SurveyPage() {
         });
         setErrors(e => ({ ...e, [qId]: false }));
     };
-
-    // Auto-save draft to localStorage (debounced)
-    const scheduleDraftSave = useCallback((ans: Record<string, AnswerValue>, other: Record<string, string>) => {
-        if (!draftKey) return;
-        if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-        saveTimerRef.current = setTimeout(() => {
-            try {
-                localStorage.setItem(draftKey, JSON.stringify({ answers: ans, otherText: other }));
-                setDraftSaved(true);
-                setTimeout(() => setDraftSaved(false), 2000);
-            } catch { /* quota exceeded */ }
-        }, 500);
-    }, [draftKey]);
-
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         const newErrors: Record<string, boolean> = {};
@@ -172,11 +173,6 @@ export default function SurveyPage() {
                                         <tr key={ri} style={{ background: ri % 2 === 0 ? 'rgba(255,255,255,0.01)' : 'rgba(255,255,255,0.03)' }}>
                                             <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                                                 <div style={{ fontWeight: 500 }}>{row}</div>
-                                                {q.likertRowDescriptions && q.likertRowDescriptions[ri] && (
-                                                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4, lineHeight: 1.4, fontStyle: 'italic' }}>
-                                                        {q.likertRowDescriptions[ri]}
-                                                    </div>
-                                                )}
                                             </td>
                                             {scale.map((s, si) => (
                                                 <td key={si} style={{ textAlign: 'center', padding: '10px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
