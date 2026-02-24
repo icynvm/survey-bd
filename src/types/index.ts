@@ -4,7 +4,8 @@ export type Role = 'admin' | 'creator' | 'respondent';
 export type SurveyStatus = 'draft' | 'published' | 'closed';
 export type QuestionType =
     | 'multiple_choice' | 'checkboxes' | 'short_text' | 'long_text'
-    | 'rating' | 'scale' | 'dropdown' | 'date' | 'yes_no' | 'likert';
+    | 'rating' | 'scale' | 'dropdown' | 'date' | 'yes_no' | 'likert'
+    | 'section';
 export type Lang = 'en' | 'th';
 
 export interface User {
@@ -22,6 +23,13 @@ export interface Session {
     name: string;
     email: string;
     role: Role;
+}
+
+export interface UserLog {
+    userId: string;
+    userName: string;
+    action: 'login' | 'logout';
+    timestamp: string;
 }
 
 export interface Question {
