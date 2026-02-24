@@ -120,6 +120,11 @@ export default function PrintSurveyPage() {
                                             <div className="print-question-num">{ri + 1}</div>
                                             <div className="print-question-text" style={{ paddingRight: 12 }}>
                                                 <div style={{ fontWeight: 500 }}>{row}</div>
+                                                {q.likertRowHasOther?.[ri] && (
+                                                    <div style={{ marginTop: 8, borderBottom: '1px dashed #ccc', height: 16, width: '100%' }}>
+                                                        <span style={{ fontSize: '9pt', color: '#888', fontStyle: 'italic', background: '#fff', paddingRight: 4, position: 'relative', top: -5 }}>Please specify:</span>
+                                                    </div>
+                                                )}
                                             </div>
                                             <div className="print-check-cols">
                                                 {scale.map((s, si) => (
@@ -130,12 +135,7 @@ export default function PrintSurveyPage() {
                                             </div>
                                         </div>
                                     ))}
-                                    {q.hasOther && (
-                                        <div className="print-text-row" style={{ marginTop: 4 }}>
-                                            <em style={{ fontSize: '10pt', color: '#555' }}>Please specify problem area:</em>
-                                            <div className="print-text-answer" />
-                                        </div>
-                                    )}
+                                    ))}
                                     {q.description && (
                                         <div className="print-text-row">
                                             <em>{q.description}</em>
