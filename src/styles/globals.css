@@ -1,11 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --bg-primary: #FFFFFF;
-  --bg-secondary: #F8FAFC;
-  --bg-card: #FFFFFF;
-  --bg-card-hover: #F1F5F9;
-  --border: #E2E8F0;
+  --bg-primary: #0F172A;
+  --bg-secondary: #020617;
+  --bg-card: rgba(30, 41, 59, 0.4);
+  --bg-card-hover: rgba(30, 41, 59, 0.6);
+  --border: rgba(255, 255, 255, 0.08);
   --border-focus: #003DA5;
   --primary: #003DA5;
   --primary-dark: #002D7A;
@@ -16,19 +16,20 @@
   --warning: #F59E0B;
   --danger: #EF4444;
   --info: #3B82F6;
-  --text-primary: #0F172A;
-  --text-secondary: #475569;
-  --text-muted: #94A3B8;
+  --text-primary: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --text-muted: #64748B;
   --gradient: linear-gradient(135deg, #003DA5, #E84E0F);
   --gradient-accent: linear-gradient(135deg, #E84E0F, #003DA5);
+  --gradient-bg: linear-gradient(135deg, #000B1E 0%, #0F172A 50%, #1E0A00 100%);
   --sidebar-w: 260px;
   --topbar-h: 64px;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 24px;
-  --shadow: 0 4px 20px rgba(0, 61, 165, 0.08);
-  --shadow-glow: 0 0 30px rgba(0, 61, 165, 0.1);
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 30px rgba(0, 61, 165, 0.2);
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -47,7 +48,8 @@ html {
 
 body {
   font-family: 'Outfit', 'Noto Sans Thai', sans-serif;
-  background: var(--bg-primary);
+  background: var(--gradient-bg);
+  background-attachment: fixed;
   color: var(--text-primary);
   min-height: 100vh;
   overflow-x: hidden;
@@ -136,7 +138,7 @@ select {
 
 .topbar {
   height: var(--topbar-h);
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);
   display: flex;
