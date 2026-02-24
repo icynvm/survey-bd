@@ -145,23 +145,44 @@ export default function AdminPage() {
                                 <button className="modal-close" onClick={() => setModalOpen(false)}>×</button>
                             </div>
                             <form onSubmit={saveUser}>
-                                <div className="form-group"><label className="form-label">{t('admin.name')}</label><input className="form-input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required /></div>
-                                <div className="form-group"><label className="form-label">{t('admin.email')}</label><input className="form-input" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required /></div>
+                                <div className="form-group">
+                                    <label className="form-label">{t('admin.name')}</label>
+                                    <input className="form-input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">{t('admin.email')}</label>
+                                    <input className="form-input" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required />
+                                </div>
                                 <div className="form-group">
                                     <label className="form-label">{t('admin.role')}</label>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8 }}>
+                                    <div className="role-grid">
                                         {ROLE_META.map(rm => (
-                                            <div key={rm.role} onClick={() => setForm(f => ({ ...f, role: rm.role }))} style={{ padding: '10px 8px', border: `2px solid ${form.role === rm.role ? 'var(--primary)' : 'var(--border)'}`, borderRadius: 8, cursor: 'pointer', textAlign: 'center', background: form.role === rm.role ? 'rgba(99,102,241,0.1)' : 'transparent' }}>
-                                                <div style={{ fontSize: 20 }}>{rm.icon}</div>
-                                                <div style={{ fontSize: 12, fontWeight: 700, marginTop: 4 }}>{t(`admin.roles.${rm.role}`)}</div>
+                                            <div
+                                                key={rm.role}
+                                                onClick={() => setForm(f => ({ ...f, role: rm.role }))}
+                                                className={`role-card ${form.role === rm.role ? 'active' : ''}`}
+                                            >
+                                                <div className="role-card-icon">{rm.icon}</div>
+                                                <div className="role-card-name">{t(`admin.roles.${rm.role}`)}</div>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
-                                <div className="form-group"><label className="form-label">{t('admin.password')}</label><input className="form-input" type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} placeholder={editingId ? 'Leave blank to keep current' : 'Min 6 characters'} {...(!editingId ? { required: true } : {})} /></div>
-                                <div className="form-group"><label className="form-label">{t('admin.confirmPw')}</label><input className="form-input" type="password" value={form.password2} onChange={e => setForm(f => ({ ...f, password2: e.target.value }))} /></div>
-                                <label className="form-check"><input type="checkbox" checked={form.isActive} onChange={e => setForm(f => ({ ...f, isActive: e.target.checked }))} /><span>{t('common.active')}</span></label>
-                                {formError && <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, padding: '10px 14px', color: '#fca5a5', fontSize: 13, margin: '12px 0' }}>{formError}</div>}
+                                <div className="form-group">
+                                    <label className="form-label">{t('admin.password')}</label>
+                                    <input className="form-input" type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} placeholder={editingId ? 'Leave blank to keep current' : 'Min 6 characters'} {...(!editingId ? { required: true } : {})} />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">{t('admin.confirmPw')}</label>
+                                    <input className="form-input" type="password" value={form.password2} onChange={e => setForm(f => ({ ...f, password2: e.target.value }))} />
+                                </div>
+                                <div style={{ marginBottom: 20 }}>
+                                    <label className="form-check" style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                                        <input type="checkbox" checked={form.isActive} onChange={e => setForm(f => ({ ...f, isActive: e.target.checked }))} />
+                                        <span style={{ fontSize: 13, fontWeight: 600 }}>{t('common.active')}</span>
+                                    </label>
+                                </div>
+                                {formError && <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, padding: '12px', color: 'var(--danger)', fontSize: 13, marginBottom: 20 }}>{formError}</div>}
                                 <div className="modal-footer">
                                     <button type="button" className="btn btn-secondary" onClick={() => setModalOpen(false)}>{t('common.cancel')}</button>
                                     <button type="submit" className="btn btn-primary">💾 {t('common.save')}</button>
