@@ -206,20 +206,9 @@ export default function BuilderPage() {
                                     <input style={{ ...inputStyle, flex: 1 }} value={row} onChange={e => { const r = [...(selectedQ.likertRows ?? [])]; r[i] = e.target.value; updateQ(selectedQ.id, { likertRows: r }); }} />
                                     <button onClick={() => {
                                         const r = (selectedQ.likertRows ?? []).filter((_, j) => j !== i);
-                                        const rDesc = (selectedQ.likertRowDescriptions ?? []).filter((_, j) => j !== i);
-                                        updateQ(selectedQ.id, { likertRows: r, likertRowDescriptions: rDesc });
+                                        updateQ(selectedQ.id, { likertRows: r });
                                     }} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: 18 }}>×</button>
                                 </div>
-                                <input
-                                    style={{ ...inputStyle, fontSize: 12, padding: '6px 10px', background: 'rgba(0,0,0,0.2)' }}
-                                    placeholder="Optional description/explanation for this row"
-                                    value={(selectedQ.likertRowDescriptions ?? [])[i] ?? ''}
-                                    onChange={e => {
-                                        const d = [...(selectedQ.likertRowDescriptions ?? [])];
-                                        d[i] = e.target.value;
-                                        updateQ(selectedQ.id, { likertRowDescriptions: d });
-                                    }}
-                                />
                             </div>
                         ))}
                         <button onClick={() => {
@@ -227,7 +216,6 @@ export default function BuilderPage() {
                             updateQ(q.id, {
                                 likertRows: [...(q.likertRows ?? []), `Sub-question ${n}`],
                                 likertRowsTh: [...(q.likertRowsTh ?? []), `คำถามย่อย ${n}`],
-                                likertRowDescriptions: [...(q.likertRowDescriptions ?? []), '']
                             });
                         }} style={{ color: 'var(--primary-light)', fontSize: 13, background: 'none', border: 'none', cursor: 'pointer', padding: '6px 0', marginTop: 4 }}>+ Add Row</button>
                         <label className="form-check" style={{ marginTop: 16 }}>
