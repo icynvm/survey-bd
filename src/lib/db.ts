@@ -6,6 +6,7 @@ const KEYS = {
     responses: 'sv_responses',
     session: 'sv_session',
     lang: 'survey_lang',
+    logs: 'sv_logs',
 } as const;
 
 function get<T>(key: string): T | null {
@@ -54,6 +55,14 @@ export const setSession = (user: User): void =>
     set(KEYS.session, { id: user.id, name: user.name, email: user.email, role: user.role });
 export const clearSession = (): void => {
     if (typeof window !== 'undefined') localStorage.removeItem(KEYS.session);
+};
+
+// ── Logs ─────────────────────────────────────────────────────────
+export const getLogs = (): any[] => get<any[]>(KEYS.logs) ?? [];
+export const saveLog = (log: any): void => {
+    const list = getLogs();
+    list.unshift(log); // Newest first
+    set(KEYS.logs, list.slice(0, 1000)); // Keep last 1000
 };
 
 // ── Seed Data ────────────────────────────────────────────────────
