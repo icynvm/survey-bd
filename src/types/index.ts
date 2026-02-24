@@ -43,8 +43,7 @@ export interface Question {
     // likert
     likertRows?: string[];      // ← NEW: sub-questions in likert table
     likertRowsTh?: string[];
-    likertRowDescriptions?: string[];   // ← NEW: explanations/descriptions per sub-question
-    likertRowDescriptionsTh?: string[];
+    likertRowHasOther?: boolean[]; // ← NEW: maps 1:1 with likertRows to show 'Please specify'
     likertScale?: string[];     // ← NEW: column labels e.g. ['Very Satisfied','Satisfied',...]
     likertScaleTh?: string[];
 }
