@@ -173,6 +173,18 @@ export default function SurveyPage() {
                                         <tr key={ri} style={{ background: ri % 2 === 0 ? 'rgba(255,255,255,0.01)' : 'rgba(255,255,255,0.03)' }}>
                                             <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                                                 <div style={{ fontWeight: 500 }}>{row}</div>
+                                                {q.likertRowHasOther?.[ri] && (
+                                                    <div style={{ marginTop: 8 }}>
+                                                        <input type="text" value={otherText[`${q.id}_${ri}`] ?? ''} onChange={e => {
+                                                            const val = e.target.value;
+                                                            setOtherText(o => {
+                                                                const updated = { ...o, [`${q.id}_${ri}`]: val };
+                                                                scheduleDraftSave(answers, updated);
+                                                                return updated;
+                                                            });
+                                                        }} placeholder="Please specify..." style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text-primary)', outline: 'none', fontSize: 13, padding: '6px 10px', fontFamily: 'inherit' }} />
+                                                    </div>
+                                                )}
                                             </td>
                                             {scale.map((s, si) => (
                                                 <td key={si} style={{ textAlign: 'center', padding: '10px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
@@ -192,19 +204,6 @@ export default function SurveyPage() {
                                 })}
                             </tbody>
                         </table>
-                        {q.hasOther && (
-                            <div style={{ marginTop: 12, padding: '12px 14px', background: 'rgba(255,255,255,0.02)', borderRadius: 8, border: '1px solid var(--border)' }}>
-                                <label style={{ fontSize: 13, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>Please specify problem area:</label>
-                                <input type="text" value={otherText[q.id] ?? ''} onChange={e => {
-                                    const val = e.target.value;
-                                    setOtherText(o => {
-                                        const updated = { ...o, [q.id]: val };
-                                        scheduleDraftSave(answers, updated);
-                                        return updated;
-                                    });
-                                }} placeholder="Your answer..." style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--text-primary)', outline: 'none', fontSize: 14, padding: '10px 12px', fontFamily: 'inherit' }} />
-                            </div>
-                        )}
                     </div>
                 )}
 
