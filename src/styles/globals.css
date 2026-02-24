@@ -1219,6 +1219,7 @@ tbody tr:hover {
 
   .sidebar.open {
     transform: translateX(0);
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.6);
   }
 
   .main-content {
@@ -1233,6 +1234,16 @@ tbody tr:hover {
 
   .page-content {
     padding: 16px;
+  }
+
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .show-on-mobile {
+    display: none !important;
   }
 }
 
