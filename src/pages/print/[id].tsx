@@ -120,11 +120,6 @@ export default function PrintSurveyPage() {
                                             <div className="print-question-num">{ri + 1}</div>
                                             <div className="print-question-text" style={{ paddingRight: 12 }}>
                                                 <div style={{ fontWeight: 500 }}>{row}</div>
-                                                {q.likertRowDescriptions && q.likertRowDescriptions[ri] && (
-                                                    <div style={{ fontSize: '10pt', color: '#666', marginTop: 4, lineHeight: 1.3, fontStyle: 'italic' }}>
-                                                        {q.likertRowDescriptions[ri]}
-                                                    </div>
-                                                )}
                                             </div>
                                             <div className="print-check-cols">
                                                 {scale.map((s, si) => (
