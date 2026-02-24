@@ -42,6 +42,7 @@ export default function BuilderPage() {
     const [survey, setSurvey] = useState<Survey | null>(null);
     const [selectedQId, setSelectedQId] = useState<string | null>(null);
     const [shareOpen, setShareOpen] = useState(false);
+    const [isDirty, setIsDirty] = useState(false);
     const dragSrcRef = useRef<string | null>(null);
 
     const newSurvey = useCallback((): Survey => ({
@@ -61,9 +62,11 @@ export default function BuilderPage() {
 
     if (!ready || !user || !survey) return null;
 
-    const updateSurvey = (upd: Partial<Survey>) => setSurvey(s => s ? { ...s, ...upd } : s);
-    const updateQ = (qId: string, upd: Partial<Question>) =>
+    const updateSurvey = (upd: Partial<Survey>) => { setSurvey(s => s ? { ...s, ...upd } : s); setIsDirty(true); };
+    const updateQ = (qId: string, upd: Partial<Question>) => {
         setSurvey(s => s ? { ...s, questions: s.questions.map(q => q.id === qId ? { ...q, ...upd } : q) } : s);
+        setIsDirty(true);
+    };
     const selectedQ = survey.questions.find(q => q.id === selectedQId) ?? null;
 
     const addQuestion = (type: QuestionType) => {
@@ -82,6 +85,7 @@ export default function BuilderPage() {
         };
         setSurvey(s => s ? { ...s, questions: [...s.questions, q] } : s);
         setSelectedQId(q.id);
+        setIsDirty(true);
     };
 
     const deleteQ = async (id: string) => {
@@ -89,6 +93,7 @@ export default function BuilderPage() {
         if (ok) {
             setSurvey(s => s ? { ...s, questions: s.questions.filter(q => q.id !== id) } : s);
             if (selectedQId === id) setSelectedQId(null);
+            setIsDirty(true);
         }
     };
 
@@ -97,24 +102,26 @@ export default function BuilderPage() {
         const copy = { ...JSON.parse(JSON.stringify(q)), id: uid() };
         const idx = survey.questions.findIndex(q => q.id === id);
         setSurvey(s => s ? { ...s, questions: [...s.questions.slice(0, idx + 1), copy, ...s.questions.slice(idx + 1)] } : s);
+        setIsDirty(true);
         toast.show('Question duplicated');
     };
 
     const saveSurvey = () => {
         const updated = { ...survey, title: survey.title || t('builder.untitled'), updatedAt: new Date().toISOString() };
         DB.saveSurvey(updated); setSurvey(updated); toast.show(t('builder.saveSuccess'));
+        setIsDirty(false);
         if (!router.query.id) router.replace(`/builder?id=${updated.id}`, undefined, { shallow: true });
     };
 
     const publishSurvey = async () => {
         if (survey.status === 'published') {
             const ok = await confirm(t('survey.closeConfirm'));
-            if (ok) { const upd = { ...survey, status: 'closed' as const, updatedAt: new Date().toISOString() }; DB.saveSurvey(upd); setSurvey(upd); toast.show('Survey closed'); }
+            if (ok) { const upd = { ...survey, status: 'closed' as const, updatedAt: new Date().toISOString() }; DB.saveSurvey(upd); setSurvey(upd); setIsDirty(false); toast.show('Survey closed'); }
         } else {
             if (!survey.questions.length) { toast.show('Add at least one question before publishing!', 'warning'); return; }
             if (!survey.title) { toast.show('Survey needs a title!', 'warning'); return; }
             const ok = await confirm(t('survey.publishConfirm'));
-            if (ok) { const upd = { ...survey, status: 'published' as const, publishedAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; DB.saveSurvey(upd); setSurvey(upd); toast.show('Survey published!'); }
+            if (ok) { const upd = { ...survey, status: 'published' as const, publishedAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; DB.saveSurvey(upd); setSurvey(upd); setIsDirty(false); toast.show('Survey published!'); }
         }
     };
 
@@ -128,6 +135,28 @@ export default function BuilderPage() {
     };
 
     const surveyUrl = typeof window !== 'undefined' ? `${window.location.origin}/survey/${survey.id}` : '';
+
+    /* ── Unsaved changes prompt ── */
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (isDirty) { e.preventDefault(); e.returnValue = ''; }
+        };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [isDirty]);
+
+    useEffect(() => {
+        const handleRouteChange = (url: string) => {
+            if (isDirty) {
+                if (!window.confirm("You have unsaved changes! Are you sure you want to leave without saving?")) {
+                    router.events.emit('routeChangeError');
+                    throw 'routeChange aborted.';
+                }
+            }
+        };
+        router.events.on('routeChangeStart', handleRouteChange);
+        return () => router.events.off('routeChangeStart', handleRouteChange);
+    }, [isDirty, router.events]);
 
     /* ── Settings panel content ── */
     const renderSettings = () => {
@@ -206,9 +235,18 @@ export default function BuilderPage() {
                                     <input style={{ ...inputStyle, flex: 1 }} value={row} onChange={e => { const r = [...(selectedQ.likertRows ?? [])]; r[i] = e.target.value; updateQ(selectedQ.id, { likertRows: r }); }} />
                                     <button onClick={() => {
                                         const r = (selectedQ.likertRows ?? []).filter((_, j) => j !== i);
-                                        updateQ(selectedQ.id, { likertRows: r });
+                                        const ho = (selectedQ.likertRowHasOther ?? []).filter((_, j) => j !== i);
+                                        updateQ(selectedQ.id, { likertRows: r, likertRowHasOther: ho });
                                     }} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: 18 }}>×</button>
                                 </div>
+                                <label className="form-check" style={{ marginTop: 4 }}>
+                                    <input type="checkbox" checked={!!(selectedQ.likertRowHasOther ?? [])[i]} onChange={e => {
+                                        const ho = [...(selectedQ.likertRowHasOther ?? [])];
+                                        ho[i] = e.target.checked;
+                                        updateQ(selectedQ.id, { likertRowHasOther: ho });
+                                    }} />
+                                    <span style={{ fontSize: 12 }}>Add 'Please specify' field</span>
+                                </label>
                             </div>
                         ))}
                         <button onClick={() => {
@@ -216,12 +254,9 @@ export default function BuilderPage() {
                             updateQ(q.id, {
                                 likertRows: [...(q.likertRows ?? []), `Sub-question ${n}`],
                                 likertRowsTh: [...(q.likertRowsTh ?? []), `คำถามย่อย ${n}`],
+                                likertRowHasOther: [...(q.likertRowHasOther ?? []), false],
                             });
                         }} style={{ color: 'var(--primary-light)', fontSize: 13, background: 'none', border: 'none', cursor: 'pointer', padding: '6px 0', marginTop: 4 }}>+ Add Row</button>
-                        <label className="form-check" style={{ marginTop: 16 }}>
-                            <input type="checkbox" checked={!!selectedQ.hasOther} onChange={e => updateQ(selectedQ.id, { hasOther: e.target.checked })} />
-                            <span style={{ fontSize: 13 }}>Add free-text field (e.g. Please specify)</span>
-                        </label>
                     </div>
                 </>)}
 
