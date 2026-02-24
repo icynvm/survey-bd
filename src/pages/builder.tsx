@@ -387,7 +387,7 @@ export default function BuilderPage() {
                                             <div style={{ marginTop: 10, marginLeft: 36, padding: 10, background: 'rgba(99,102,241,0.06)', borderRadius: 8, border: '1px solid rgba(99,102,241,0.15)' }}>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                                                     <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Sub-questions</span>
-                                                    <div style={{ display: 'flex', gap: 6 }}>{(q.likertScale ?? DEFAULT_LIKERT_SCALE).map((s, si) => <span key={si} style={{ fontSize: 10, color: 'var(--primary-light)', whiteSpace: 'nowrap' }}>{s}</span>)}</div>
+                                                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{(q.likertScale ?? DEFAULT_LIKERT_SCALE).map((s, si) => <span key={si} style={{ fontSize: 10, color: 'var(--primary-light)' }}>{s}</span>)}</div>
                                                 </div>
                                                 {(q.likertRows ?? []).map((row, ri) => <div key={ri} style={{ fontSize: 12, color: 'var(--text-secondary)', padding: '3px 0', borderTop: ri > 0 ? '1px solid var(--border)' : 'none' }}>• {row}</div>)}
                                             </div>
@@ -396,16 +396,16 @@ export default function BuilderPage() {
                                 );
                             })}
                         </div>
-                    </div>
-                    {/* Settings panel */}
-                    {settingsOpen && <div className="sidebar-overlay open show-on-mobile" onClick={() => setSettingsOpen(false)} />}
-                    <div className={`builder-settings ${settingsOpen ? 'open' : ''}`}>
-                        <div className="show-on-mobile" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
-                            <button className="icon-btn" onClick={() => setSettingsOpen(false)} style={{ border: 'none', background: 'var(--bg-card)', width: 32, height: 32, boxShadow: 'var(--shadow-sm)' }}>
-                                <FiX size={18} />
-                            </button>
+                        {/* Settings panel */}
+                        {settingsOpen && <div className="sidebar-overlay open show-on-mobile" onClick={() => setSettingsOpen(false)} />}
+                        <div className={`builder-settings ${settingsOpen ? 'open' : ''}`}>
+                            <div className="show-on-mobile" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+                                <button className="icon-btn" onClick={() => setSettingsOpen(false)} style={{ border: 'none', background: 'var(--bg-card)', width: 32, height: 32, boxShadow: 'var(--shadow-sm)' }}>
+                                    <FiX size={18} />
+                                </button>
+                            </div>
+                            {renderSettings()}
                         </div>
-                        {renderSettings()}
                     </div>
                 </div>
             </div>
