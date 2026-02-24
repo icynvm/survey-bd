@@ -5,9 +5,8 @@ import { useApp } from '@/contexts/AppContext';
 import { LangToggle } from '@/components/ui';
 
 const DEMO = [
-    { role: '🔑 Admin', email: 'admin@survey.com', pw: 'admin123' },
-    { role: '✏️ Creator', email: 'creator@survey.com', pw: 'creator123' },
-    { role: '👤 Respondent', email: 'user@survey.com', pw: 'user123' },
+    { role: 'Admin', email: 'admin@survey.com', pw: 'admin123' },
+    { role: 'Creator', email: 'creator@survey.com', pw: 'creator123' },
 ];
 
 export default function LoginPage() {
@@ -48,7 +47,7 @@ export default function LoginPage() {
                 <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 10 }}><LangToggle /></div>
                 <div className="auth-card glass fade-in">
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-                        <div className="sidebar-logo" style={{ width: 48, height: 48, fontSize: 24 }}>📊</div>
+                        <div className="sidebar-logo" style={{ width: 48, height: 48, fontSize: 22, background: 'rgba(255,255,255,0.08)' }}>⬡</div>
                         <div>
                             <div style={{ fontSize: 22, fontWeight: 800, background: 'var(--gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{t('app.name')}</div>
                             <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('app.tagline')}</div>
