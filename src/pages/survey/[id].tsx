@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import type { GetStaticPaths, GetStaticProps } from 'next';
@@ -25,12 +25,27 @@ export default function SurveyPage() {
     const [errors, setErrors] = useState<Record<string, boolean>>({});
     const [submitted, setSubmitted] = useState(false);
     const [startTime] = useState(Date.now());
+    const [draftSaved, setDraftSaved] = useState(false);
+    const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // Draft key for localStorage
+    const draftKey = id ? `survey_draft_${id}` : null;
 
     useEffect(() => {
         if (!ready || !id) return;
         const sv = DB.getSurveyById(id as string);
         if (!sv) { setNotFound(true); return; }
         setSurvey(sv);
+        // Load saved draft
+        const key = `survey_draft_${id}`;
+        try {
+            const raw = localStorage.getItem(key);
+            if (raw) {
+                const draft = JSON.parse(raw);
+                if (draft.answers) setAnswers(draft.answers);
+                if (draft.otherText) setOtherText(draft.otherText);
+            }
+        } catch { /* ignore */ }
     }, [ready, id]);
 
     if (!ready || router.isFallback) return null;
@@ -51,9 +66,26 @@ export default function SurveyPage() {
     const desc = lang === 'th' && survey.descriptionTh ? survey.descriptionTh : survey.description;
 
     const setAnswer = (qId: string, val: AnswerValue) => {
-        setAnswers(a => ({ ...a, [qId]: val }));
+        setAnswers(a => {
+            const updated = { ...a, [qId]: val };
+            scheduleDraftSave(updated, otherText);
+            return updated;
+        });
         setErrors(e => ({ ...e, [qId]: false }));
     };
+
+    // Auto-save draft to localStorage (debounced)
+    const scheduleDraftSave = useCallback((ans: Record<string, AnswerValue>, other: Record<string, string>) => {
+        if (!draftKey) return;
+        if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = setTimeout(() => {
+            try {
+                localStorage.setItem(draftKey, JSON.stringify({ answers: ans, otherText: other }));
+                setDraftSaved(true);
+                setTimeout(() => setDraftSaved(false), 2000);
+            } catch { /* quota exceeded */ }
+        }, 500);
+    }, [draftKey]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -87,6 +119,8 @@ export default function SurveyPage() {
             answers: finalAnswers, submittedAt: new Date().toISOString(),
             completionTime: Math.round((Date.now() - startTime) / 1000),
         });
+        // Clear draft after successful submit
+        if (draftKey) { try { localStorage.removeItem(draftKey); } catch { /* ignore */ } }
         setSubmitted(true);
     };
 
@@ -162,6 +196,19 @@ export default function SurveyPage() {
                                 })}
                             </tbody>
                         </table>
+                        {q.hasOther && (
+                            <div style={{ marginTop: 12, padding: '12px 14px', background: 'rgba(255,255,255,0.02)', borderRadius: 8, border: '1px solid var(--border)' }}>
+                                <label style={{ fontSize: 13, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>Please specify problem area:</label>
+                                <input type="text" value={otherText[q.id] ?? ''} onChange={e => {
+                                    const val = e.target.value;
+                                    setOtherText(o => {
+                                        const updated = { ...o, [q.id]: val };
+                                        scheduleDraftSave(answers, updated);
+                                        return updated;
+                                    });
+                                }} placeholder="Your answer..." style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--text-primary)', outline: 'none', fontSize: 14, padding: '10px 12px', fontFamily: 'inherit' }} />
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -265,8 +312,9 @@ export default function SurveyPage() {
             <Head><title>{title} | SurveyBD</title></Head>
             <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', padding: '0 0 80px' }}>
                 <div style={{ background: 'rgba(7,7,20,0.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid var(--border)', padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 12, position: 'sticky', top: 0, zIndex: 50 }}>
-                    <div style={{ background: 'var(--gradient)', borderRadius: 8, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>📊</div>
+                    <div style={{ background: 'rgba(255,255,255,0.08)', borderRadius: 8, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>⬡</div>
                     <span style={{ fontWeight: 700 }}>SurveyBD</span>
+                    {draftSaved && <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text-muted)', opacity: 0.7, transition: 'opacity 0.3s' }}>✓ Draft saved</span>}
                 </div>
                 <div style={{ maxWidth: 700, margin: '0 auto', padding: '32px 20px' }}>
                     {submitted ? (
