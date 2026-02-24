@@ -230,6 +230,10 @@ export default function BuilderPage() {
                                 likertRowDescriptions: [...(q.likertRowDescriptions ?? []), '']
                             });
                         }} style={{ color: 'var(--primary-light)', fontSize: 13, background: 'none', border: 'none', cursor: 'pointer', padding: '6px 0', marginTop: 4 }}>+ Add Row</button>
+                        <label className="form-check" style={{ marginTop: 16 }}>
+                            <input type="checkbox" checked={!!selectedQ.hasOther} onChange={e => updateQ(selectedQ.id, { hasOther: e.target.checked })} />
+                            <span style={{ fontSize: 13 }}>Add free-text field (e.g. Please specify)</span>
+                        </label>
                     </div>
                 </>)}
 
@@ -248,16 +252,16 @@ export default function BuilderPage() {
             <Head><title>{survey.title || t('builder.untitled')} | Builder | SurveyBD</title></Head>
             <div className="app-layout">
                 <aside className="sidebar">
-                    <div className="sidebar-brand"><div className="sidebar-logo">📊</div><div><div className="sidebar-title">{t('app.name')}</div></div></div>
+                    <div className="sidebar-brand"><div className="sidebar-logo" style={{ background: 'rgba(255,255,255,0.08)', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>⬡</div><div><div className="sidebar-title">{t('app.name')}</div></div></div>
                     <div style={{ padding: '12px', flex: 1, overflowY: 'auto' }}>
                         <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Question Types</div>
                         {Q_TYPES.map(type => {
                             const info = QUESTION_TYPE_INFO[type];
                             return (
                                 <button key={type} onClick={() => addQuestion(type)} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s', width: '100%', marginBottom: 6 }}>
-                                    <div style={{ width: 28, height: 28, borderRadius: 6, background: `${info.color}20`, color: info.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{ICON_MAP[type]}</div>
-                                    <div style={{ flex: 1 }}>                                     <div style={{ fontSize: 13, fontWeight: 500 }}>{lang === 'th' ? info.th : info.en}</div>
-                                        {type === 'likert' && <div style={{ fontSize: 10, color: 'var(--primary-light)' }}>5-point satisfaction table</div>}
+                                    <div style={{ width: 28, height: 28, borderRadius: 6, background: 'rgba(255,255,255,0.06)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>{ICON_MAP[type]}</div>
+                                    <div style={{ flex: 1 }}>                                     <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>{lang === 'th' ? info.th : info.en}</div>
+                                        {type === 'likert' && <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>5-point satisfaction table</div>}
                                     </div>
                                 </button>
                             );
