@@ -19,6 +19,7 @@ export default function SurveyPage() {
     const toast = useToast();
     const { id } = router.query;
     const [survey, setSurvey] = useState<Survey | null>(null);
+    const [loading, setLoading] = useState(true);
     const [notFound, setNotFound] = useState(false);
     const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
     const [otherText, setOtherText] = useState<Record<string, string>>({});
@@ -27,25 +28,31 @@ export default function SurveyPage() {
     const [startTime] = useState(Date.now());
     const [draftSaved, setDraftSaved] = useState(false);
     const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [step, setStep] = useState(0); // 0=Intro, 1=Questions, 2=Done
 
     // Draft key for localStorage
     const draftKey = id ? `survey_draft_${id}` : null;
 
     useEffect(() => {
         if (!ready || !id) return;
-        const sv = DB.getSurveyById(id as string);
-        if (!sv) { setNotFound(true); return; }
-        setSurvey(sv);
-        // Load saved draft
-        const key = `survey_draft_${id}`;
-        try {
-            const raw = localStorage.getItem(key);
-            if (raw) {
-                const draft = JSON.parse(raw);
-                if (draft.answers) setAnswers(draft.answers);
-                if (draft.otherText) setOtherText(draft.otherText);
-            }
-        } catch { /* ignore */ }
+        const load = async () => {
+            setLoading(true);
+            const sv = await DB.getSurveyById(id as string);
+            if (!sv) { setNotFound(true); setLoading(false); return; }
+            setSurvey(sv);
+            // Load saved draft
+            const key = `survey_draft_${id}`;
+            try {
+                const raw = localStorage.getItem(key);
+                if (raw) {
+                    const draft = JSON.parse(raw);
+                    if (draft.answers) setAnswers(draft.answers);
+                    if (draft.otherText) setOtherText(draft.otherText);
+                }
+            } catch { /* ignore */ }
+            setLoading(false);
+        };
+        load();
     }, [ready, id]);
 
     // Auto-save draft to localStorage (debounced)
@@ -62,14 +69,17 @@ export default function SurveyPage() {
     }, [draftKey]);
 
 
-
-    if (!ready || router.isFallback) return null;
+    if (!ready || loading) return (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg-primary)' }}>
+            <div className="spinner"></div>
+        </div>
+    );
     if (notFound) return (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', flexDirection: 'column', gap: 12, color: 'var(--text-muted)', background: 'var(--bg-primary)' }}>
             <div style={{ fontSize: 64 }}>🔍</div><div style={{ fontSize: 20, fontWeight: 700 }}>{t('survey.surveyNotFound')}</div>
         </div>
     );
-    if (!survey) return null;
+    if (!survey) return null; // Should not happen if notFound is handled
     if (survey.status !== 'published') return (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', flexDirection: 'column', gap: 12, background: 'var(--bg-primary)', color: 'var(--text-muted)' }}>
             <div style={{ fontSize: 64 }}>🔒</div>
@@ -88,7 +98,7 @@ export default function SurveyPage() {
         });
         setErrors(e => ({ ...e, [qId]: false }));
     };
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const newErrors: Record<string, boolean> = {};
         let valid = true;
@@ -116,14 +126,21 @@ export default function SurveyPage() {
                 else finalAnswers[qId] = `Other: ${txt}`;
             }
         });
-        DB.saveResponse({
-            id: uid(), surveyId: survey.id, respondentId: null, respondentName: 'Anonymous',
-            answers: finalAnswers, submittedAt: new Date().toISOString(),
+        const resp: SurveyResponse = {
+            id: uid(),
+            surveyId: survey.id,
+            respondentId: null, // Assuming no user context for now, as per original code
+            respondentName: 'Anonymous',
+            answers: finalAnswers,
+            submittedAt: new Date().toISOString(),
             completionTime: Math.round((Date.now() - startTime) / 1000),
-        });
+        };
+        await DB.saveResponse(resp);
         // Clear draft after successful submit
         if (draftKey) { try { localStorage.removeItem(draftKey); } catch { /* ignore */ } }
         setSubmitted(true);
+        setStep(2); // Set step to 2 for completion screen
+        window.scrollTo(0, 0);
     };
 
     const qCount = survey.questions.filter(q => q.type !== 'section').length;
