@@ -7,7 +7,7 @@ import { useToast, Toast, ConfirmModal, useConfirm, StatusBadge, RoleBadge } fro
 import { getRoleLabel, getRoleClass } from '@/lib/utils';
 import * as DB from '@/lib/db';
 import { uid, formatDate } from '@/lib/utils';
-import type { User, Role } from '@/types';
+import type { User, Role, Survey } from '@/types';
 
 const ROLE_META: { role: Role; icon: string; color: string }[] = [
     { role: 'admin', icon: '🔑', color: 'rgba(239,68,68,0.15)' },
