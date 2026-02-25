@@ -1,23 +1,23 @@
 import type { Session, User, Role } from '@/types';
 import * as DB from './db';
 
-export const login = (email: string, password: string): { success: boolean; user?: User } => {
-    const user = DB.getUsers().find(u => u.email === email && u.password === password && u.isActive);
+export const login = async (email: string, password: string): Promise<{ success: boolean; user?: User }> => {
+    const list = await DB.getUsers();
+    const user = list.find(u => u.email === email && u.password === password && u.isActive);
     if (user) {
-        DB.setSession(user);
-        DB.saveLog({ userId: user.id, userName: user.name, action: 'login', timestamp: new Date().toISOString() });
+        await DB.setSession(user);
+        await DB.saveLog({ userId: user.id, userName: user.name, action: 'login', timestamp: new Date().toISOString() });
         return { success: true, user };
     }
     return { success: false };
 };
 
-export const logout = (): void => {
+export const logout = async (): Promise<void> => {
     const user = DB.getSession();
     if (user) {
-        DB.saveLog({ userId: user.id, userName: user.name, action: 'logout', timestamp: new Date().toISOString() });
+        await DB.saveLog({ userId: user.id, userName: user.name, action: 'logout', timestamp: new Date().toISOString() });
     }
-    DB.clearSession();
-    window.location.href = '/';
+    await DB.clearSession();
 };
 
 export const getUser = (): Session | null => DB.getSession();
