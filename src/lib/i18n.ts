@@ -39,13 +39,21 @@ const T: Record<Lang, Translations> = {
     },
 };
 
+const getCookie = (name: string): string | null => {
+    if (typeof document === 'undefined') return null;
+    const match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1') + '=([^;]*)'));
+    return match ? decodeURIComponent(match[1]) : null;
+};
+
 export const getLang = (): Lang => {
     if (typeof window === 'undefined') return 'en';
-    return (localStorage.getItem('survey_lang') as Lang) ?? 'en';
+    return (getCookie('survey_lang') as Lang) ?? 'en';
 };
 
 export const setLang = (lang: Lang): void => {
-    if (typeof window !== 'undefined') localStorage.setItem('survey_lang', lang);
+    if (typeof document === 'undefined') return;
+    const expires = new Date(Date.now() + 365 * 864e5).toUTCString();
+    document.cookie = `survey_lang=${lang}; expires=${expires}; path=/; SameSite=Strict`;
 };
 
 export const t = (lang: Lang, path: string): string => {
