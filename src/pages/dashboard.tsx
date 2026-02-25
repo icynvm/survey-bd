@@ -16,17 +16,30 @@ export default function DashboardPage() {
     const [surveys, setSurveys] = useState<Survey[]>([]);
     const [responses, setResponses] = useState<SurveyResponse[]>([]);
     const [users, setUsers] = useState<User[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (!ready) return;
         if (!user) { router.replace('/'); return; }
-        setSurveys(DB.getSurveys());
-        setResponses(DB.getResponses());
-        setUsers(DB.getUsers());
+
+        const loadData = async () => {
+            setLoading(true);
+            const [s, r, u] = await Promise.all([
+                DB.getSurveys(),
+                DB.getResponses(),
+                DB.getUsers()
+            ]);
+            setSurveys(s);
+            setResponses(r);
+            setUsers(u);
+            setLoading(false);
+        };
+
+        loadData();
     }, [ready, user, router]);
 
-    const handleDuplicate = (e: React.MouseEvent, s: Survey) => {
-        e.preventDefault(); // prevent navigation
+    const handleDuplicate = async (e: React.MouseEvent, s: Survey) => {
+        e.preventDefault();
         const newSurvey: Survey = {
             ...s,
             id: uid(),
@@ -36,21 +49,28 @@ export default function DashboardPage() {
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             publishedAt: null,
-            creatorId: user?.id || s.creatorId, // Set to current user so they own the copy
+            creatorId: user?.id || s.creatorId,
             questions: s.questions.map(q => ({ ...q, id: uid() }))
         };
-        DB.saveSurvey(newSurvey);
-        setSurveys(DB.getSurveys()); // Refresh list
+        await DB.saveSurvey(newSurvey);
+        const updated = await DB.getSurveys();
+        setSurveys(updated);
     };
 
-    if (!ready || !user) return null;
+    if (!ready || !user || loading) return (
+        <Layout active="dashboard">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh' }}>
+                <div className="spinner"></div>
+            </div>
+        </Layout>
+    );
 
     const isAdmin = user.role === 'admin';
     const isCreator = user.role === 'creator' || isAdmin;
     const mySurveys = isAdmin ? surveys : surveys.filter(s => s.creatorId === user.id);
     const activeSurveys = mySurveys.filter(s => s.status === 'published');
     const totalResponses = isAdmin ? responses.length : responses.filter(r => mySurveys.some(s => s.id === r.surveyId)).length;
-    const recentSurveys = [...mySurveys].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5);
+    const recentSurveys = [...mySurveys].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     const recentActivity = [...responses].sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()).slice(0, 6);
 
     const stats = [
