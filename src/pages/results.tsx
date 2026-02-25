@@ -17,17 +17,29 @@ export default function ResultsPage() {
     const router = useRouter();
     const toast = useToast();
     const [surveys, setSurveys] = useState<Survey[]>([]);
+    const [allResponses, setAllResponses] = useState<SurveyResponse[]>([]);
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [responses, setResponses] = useState<SurveyResponse[]>([]);
     const [tab, setTab] = useState<'summary' | 'individual'>('summary');
+    const [loading, setLoading] = useState(true);
     const chartRegistered = useRef(false);
 
     useEffect(() => {
         if (!ready) return;
         if (!user) { router.replace('/'); return; }
-        const isAdmin = user.role === 'admin';
-        const allSurveys = DB.getSurveys();
-        setSurveys(isAdmin ? allSurveys : allSurveys.filter(s => s.creatorId === user.id));
+
+        const loadData = async () => {
+            setLoading(true);
+            const [s, r] = await Promise.all([
+                DB.getSurveys(),
+                DB.getResponses()
+            ]);
+            const isAdmin = user.role === 'admin';
+            setSurveys(isAdmin ? s : s.filter(x => x.creatorId === user.id));
+            setAllResponses(r);
+            setLoading(false);
+        };
+        loadData();
     }, [ready, user, router]);
 
     useEffect(() => {
@@ -41,10 +53,18 @@ export default function ResultsPage() {
     }, []);
 
     useEffect(() => {
-        if (selectedId) setResponses(DB.getResponsesBySurvey(selectedId));
-    }, [selectedId]);
+        if (selectedId) {
+            setResponses(allResponses.filter(r => r.surveyId === selectedId));
+        }
+    }, [selectedId, allResponses]);
 
-    if (!ready || !user) return null;
+    if (!ready || !user || loading) return (
+        <Layout active="results">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh' }}>
+                <div className="spinner"></div>
+            </div>
+        </Layout>
+    );
 
     const selectedSurvey = surveys.find(s => s.id === selectedId) ?? null;
     const avgTime = responses.length ? Math.round(responses.reduce((a, r) => a + r.completionTime, 0) / responses.length) : 0;
@@ -66,21 +86,29 @@ export default function ResultsPage() {
         return { labels: opts, datasets: [{ data: counts, backgroundColor: colors.slice(0, opts.length), borderWidth: 0 }] };
     };
 
+    const [pickerOpen, setPickerOpen] = useState(false);
+
     return (
         <>
             <Head><title>Results | SurveyBD</title></Head>
             <Layout active="results">
-                <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', height: 'calc(100vh - var(--topbar-h) - 1px)', overflow: 'hidden' }}>
+                <div className="results-layout">
+                    {/* Mobile toggle for survey picker */}
+                    <button className="results-picker-toggle show-on-mobile" onClick={() => setPickerOpen(!pickerOpen)}
+                        style={{ display: 'none', width: '100%', padding: '10px 16px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 10, color: 'var(--text-primary)', fontSize: 13, fontWeight: 700, marginBottom: 12, cursor: 'pointer', textAlign: 'left' }}>
+                        {selectedSurvey ? (lang === 'th' && selectedSurvey.titleTh ? selectedSurvey.titleTh : selectedSurvey.title) : '📋 Select Survey'} ▾
+                    </button>
+
                     {/* Survey picker */}
-                    <div style={{ background: 'var(--bg-secondary)', borderRight: '1px solid var(--border)', overflowY: 'auto', padding: 16 }}>
+                    <div className={`results-picker ${pickerOpen ? 'open' : ''}`}>
                         <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>RECENT SURVEYS</div>
                         {surveys.length === 0 ? (
                             <div style={{ textAlign: 'center', padding: '40px 16px', color: 'var(--text-muted)' }}><div style={{ fontSize: 32 }}>📋</div><div style={{ fontSize: 13, marginTop: 8 }}>No surveys yet</div></div>
                         ) : surveys.map(sv => {
-                            const rCount = DB.getResponsesBySurvey(sv.id).length;
+                            const rCount = allResponses.filter(r => r.surveyId === sv.id).length;
                             const svTitle = lang === 'th' && sv.titleTh ? sv.titleTh : sv.title;
                             return (
-                                <div key={sv.id} onClick={() => { setSelectedId(sv.id); setTab('summary'); }}
+                                <div key={sv.id} onClick={() => { setSelectedId(sv.id); setTab('summary'); setPickerOpen(false); }}
                                     style={{ padding: '12px 14px', borderRadius: 10, border: `1px solid ${selectedId === sv.id ? 'var(--primary)' : 'var(--border)'}`, background: selectedId === sv.id ? 'rgba(99,102,241,0.1)' : 'var(--bg-card)', marginBottom: 8, cursor: 'pointer', transition: 'all 0.15s' }}>
                                     <div style={{ fontWeight: 700, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{svTitle || '(Untitled)'}</div>
                                     <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{rCount} responses · <span className={`badge ${sv.status === 'published' ? 'badge-success' : 'badge-muted'}`} style={{ fontSize: 10, padding: '2px 6px' }}>{sv.status}</span></div>
@@ -90,7 +118,7 @@ export default function ResultsPage() {
                     </div>
 
                     {/* Results area */}
-                    <div style={{ overflowY: 'auto', padding: 24 }}>
+                    <div className="results-content" style={{ overflowY: 'auto', padding: 24 }}>
                         {!selectedSurvey ? (
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)' }}>
                                 <div style={{ fontSize: 64, marginBottom: 16 }}>📊</div>
@@ -154,7 +182,7 @@ export default function ResultsPage() {
                                                                             <thead>
                                                                                 <tr>
                                                                                     <th style={{ textAlign: 'left', padding: '6px 10px', borderBottom: '1px solid var(--border)', color: 'var(--text-muted)', minWidth: 160 }}>Statement</th>
-                                                                                    {scale.map((s, si) => <th key={si} style={{ textAlign: 'center', padding: '6px 8px', borderBottom: '1px solid var(--border)', color: 'var(--primary-light)', whiteSpace: 'nowrap', minWidth: 80 }}>{si < 5 ? ([5,4,3,2,1][si]).toString() : ""}<div style={{fontSize:10}}>{s}</div></th>)}
+                                                                                    {scale.map((s, si) => <th key={si} style={{ textAlign: 'center', padding: '6px 8px', borderBottom: '1px solid var(--border)', color: 'var(--primary-light)', whiteSpace: 'nowrap', minWidth: 80 }}>{si < 5 ? ([5, 4, 3, 2, 1][si]).toString() : ""}<div style={{ fontSize: 10 }}>{s}</div></th>)}
                                                                                 </tr>
                                                                             </thead>
                                                                             <tbody>
