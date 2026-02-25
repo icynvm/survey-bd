@@ -25,11 +25,14 @@ export interface Session {
     role: Role;
 }
 
-export interface UserLog {
+export interface Log {
+    id?: string;
     userId: string;
-    userName: string;
-    action: 'login' | 'logout';
-    timestamp: string;
+    userName?: string;
+    action: string;
+    metadata?: any;
+    timestamp?: string; // for legacy/helper
+    createdAt?: string;
 }
 
 export interface Question {
