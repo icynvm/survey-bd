@@ -22,10 +22,10 @@ export default function LoginPage() {
         if (ready && user) router.replace('/dashboard');
     }, [ready, user, router]);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true); setError('');
-        const result = login(email, password); // uses context login — updates user state immediately
+        const result = await login(email, password); // now async
         if (result.success) {
             router.push('/dashboard');
         } else {
