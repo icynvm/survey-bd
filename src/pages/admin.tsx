@@ -23,14 +23,24 @@ export default function AdminPage() {
     const toast = useToast();
     const { confirmState, confirm, onConfirm, onCancel } = useConfirm();
     const [users, setUsers] = useState<User[]>([]);
-    const [surveys] = useState(() => DB.getSurveys());
+    const [surveys, setSurveys] = useState<Survey[]>([]);
+    const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [form, setForm] = useState<UserFormState>(emptyForm());
     const [formError, setFormError] = useState('');
 
-    const reload = useCallback(() => setUsers(DB.getUsers()), []);
+    const reload = useCallback(async () => {
+        setLoading(true);
+        const [u, s] = await Promise.all([
+            DB.getUsers(),
+            DB.getSurveys()
+        ]);
+        setUsers(u);
+        setSurveys(s);
+        setLoading(false);
+    }, []);
 
     useEffect(() => {
         if (!ready) return;
@@ -39,33 +49,46 @@ export default function AdminPage() {
         reload();
     }, [ready, user, router, reload]);
 
-    if (!ready || !user) return null;
+    if (!ready || !user || loading) return (
+        <Layout active="admin">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh' }}>
+                <div className="spinner"></div>
+            </div>
+        </Layout>
+    );
 
     const filtered = users.filter(u => !search || u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase()));
 
     const openAdd = () => { setEditingId(null); setForm(emptyForm()); setFormError(''); setModalOpen(true); };
     const openEdit = (u: User) => { setEditingId(u.id); setForm({ name: u.name, email: u.email, role: u.role, password: '', password2: '', isActive: u.isActive }); setFormError(''); setModalOpen(true); };
 
-    const saveUser = (e: React.FormEvent) => {
+    const saveUser = async (e: React.FormEvent) => {
         e.preventDefault();
         if (form.password && form.password !== form.password2) { setFormError(t('admin.pwMismatch')); return; }
-        const list = DB.getUsers();
+        const list = await DB.getUsers();
         if (list.some(u => u.email === form.email.toLowerCase() && u.id !== editingId)) { setFormError(t('admin.emailExists')); return; }
+
         if (editingId) {
             const idx = list.findIndex(u => u.id === editingId);
             if (idx >= 0) { list[idx] = { ...list[idx], name: form.name, email: form.email.toLowerCase(), role: form.role, isActive: form.isActive, ...(form.password ? { password: form.password } : {}) }; }
-            DB.saveUsers(list); toast.show(t('admin.userUpdated'));
         } else {
             list.push({ id: uid(), name: form.name, email: form.email.toLowerCase(), password: form.password || 'password123', role: form.role, isActive: form.isActive, createdAt: new Date().toISOString() });
-            DB.saveUsers(list); toast.show(t('admin.userAdded'));
         }
-        setModalOpen(false); reload();
+        await DB.saveUsers(list);
+        toast.show(editingId ? t('admin.userUpdated') : t('admin.userAdded'));
+        setModalOpen(false);
+        await reload();
     };
 
     const deleteUser = async (id: string) => {
         if (id === user.id) { toast.show("Can't delete yourself", 'warning'); return; }
         const ok = await confirm(t('common.confirmDelete'));
-        if (ok) { DB.saveUsers(DB.getUsers().filter(u => u.id !== id)); toast.show(t('admin.userDeleted')); reload(); }
+        if (ok) {
+            const list = await DB.getUsers();
+            await DB.saveUsers(list.filter(u => u.id !== id));
+            toast.show(t('admin.userDeleted'));
+            await reload();
+        }
     };
 
     return (
