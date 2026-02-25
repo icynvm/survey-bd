@@ -10,14 +10,14 @@ interface AppContextValue {
     setLang: (l: Lang) => void;
     t: (path: string) => string;
     ready: boolean;
-    login: (email: string, password: string) => { success: boolean; error?: string };
+    login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
     logout: () => void;
 }
 
 const AppContext = createContext<AppContextValue>({
     user: null, lang: 'en',
     setLang: () => { }, t: (p) => p, ready: false,
-    login: () => ({ success: false }),
+    login: async () => ({ success: false }),
     logout: () => { },
 });
 
@@ -27,27 +27,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const [ready, setReady] = useState(false);
 
     useEffect(() => {
-        DB.initDB();
-        setUser(DB.getSession());
-        setLangState(getLang());
-        setReady(true);
+        const init = async () => {
+            await DB.initDB();
+            const session = await DB.loadSession();
+            setUser(session);
+            setLangState(getLang());
+            setReady(true);
+        };
+        init();
     }, []);
 
     const setLang = useCallback((l: Lang) => {
         storeLang(l); setLangState(l);
     }, []);
 
-    const login = useCallback((email: string, password: string) => {
-        const result = Auth.login(email, password);
-        if (result.success) {
-            setUser(DB.getSession()); // immediately update context state
+    const login = useCallback(async (email: string, password: string) => {
+        const result = await Auth.login(email, password);
+        if (result.success && result.user) {
+            setUser({ id: result.user.id, name: result.user.name, email: result.user.email, role: result.user.role });
         }
         return result;
     }, []);
 
-    const logout = useCallback(() => {
-        Auth.logout();
+    const logout = useCallback(async () => {
+        await DB.clearSession();
         setUser(null);
+        window.location.href = '/';
     }, []);
 
     const t = useCallback((path: string) => translate(lang, path), [lang]);
