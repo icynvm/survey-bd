@@ -30,21 +30,27 @@ export default function PrintSurveyPage() {
 
     useEffect(() => {
         if (!id) return;
-        const sv = DB.getSurveyById(id as string);
-        setSurvey(sv);
-        if (sv) {
-            const allResponses = DB.getResponsesBySurvey(id as string);
-            if (responseId) {
-                setResponse(allResponses.find(r => r.id === responseId) ?? allResponses[allResponses.length - 1] ?? null);
-            } else {
-                setResponse(allResponses[allResponses.length - 1] ?? null);
+        const load = async () => {
+            const sv = await DB.getSurveyById(id as string);
+            setSurvey(sv);
+            if (sv) {
+                const allResponses = await DB.getResponsesBySurvey(id as string);
+                if (responseId) {
+                    setResponse(allResponses.find(r => r.id === responseId) ?? allResponses[allResponses.length - 1] ?? null);
+                } else {
+                    setResponse(allResponses[allResponses.length - 1] ?? null);
+                }
             }
-        }
-        setReady(true);
+            setReady(true);
+        };
+        load();
     }, [id, responseId]);
 
     if (!ready || !survey) return (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', fontFamily: 'Arial', fontSize: 16 }}>Loading...</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', fontFamily: 'Arial', fontSize: 16 }}>
+            <div className="spinner"></div>
+            <span style={{ marginLeft: 12 }}>Loading...</span>
+        </div>
     );
 
     const today = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
