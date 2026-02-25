@@ -59,8 +59,18 @@ export default function BuilderPage() {
         if (!ready) return;
         if (!user) { router.replace('/'); return; }
         if (!Auth.can(user, 'create_survey')) { router.replace('/dashboard'); return; }
-        const id = router.query.id as string | undefined;
-        setSurvey(id ? (DB.getSurveyById(id) ?? newSurvey()) : newSurvey());
+
+        const loadSurvey = async () => {
+            const id = router.query.id as string | undefined;
+            if (id) {
+                const existing = await DB.getSurveyById(id);
+                setSurvey(existing || newSurvey());
+            } else {
+                setSurvey(newSurvey());
+            }
+        };
+
+        loadSurvey();
     }, [ready, user, router.query.id, router, newSurvey]);
 
     /* ── Unsaved changes prompt ── */
@@ -131,9 +141,9 @@ export default function BuilderPage() {
         toast.show('Question duplicated');
     };
 
-    const saveSurvey = () => {
+    const saveSurvey = async () => {
         const updated = { ...survey, title: survey.title || t('builder.untitled'), updatedAt: new Date().toISOString() };
-        DB.saveSurvey(updated); setSurvey(updated); toast.show(t('builder.saveSuccess'));
+        await DB.saveSurvey(updated); setSurvey(updated); toast.show(t('builder.saveSuccess'));
         setIsDirty(false);
         if (!router.query.id) router.replace(`/builder?id=${updated.id}`, undefined, { shallow: true });
     };
@@ -141,19 +151,19 @@ export default function BuilderPage() {
     const publishSurvey = async () => {
         if (survey.status === 'published') {
             const ok = await confirm(t('survey.closeConfirm'));
-            if (ok) { const upd = { ...survey, status: 'closed' as const, updatedAt: new Date().toISOString() }; DB.saveSurvey(upd); setSurvey(upd); setIsDirty(false); toast.show('Survey closed'); }
+            if (ok) { const upd = { ...survey, status: 'closed' as const, updatedAt: new Date().toISOString() }; await DB.saveSurvey(upd); setSurvey(upd); setIsDirty(false); toast.show('Survey closed'); }
         } else {
             if (!survey.questions.length) { toast.show('Add at least one question before publishing!', 'warning'); return; }
             if (!survey.title) { toast.show('Survey needs a title!', 'warning'); return; }
             const ok = await confirm(t('survey.publishConfirm'));
-            if (ok) { const upd = { ...survey, status: 'published' as const, publishedAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; DB.saveSurvey(upd); setSurvey(upd); setIsDirty(false); toast.show('Survey published!'); }
+            if (ok) { const upd = { ...survey, status: 'published' as const, publishedAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; await DB.saveSurvey(upd); setSurvey(upd); setIsDirty(false); toast.show('Survey published!'); }
         }
     };
 
     const handleDeleteSurvey = async () => {
         const ok = await confirm('Are you sure you want to delete this entire survey? This action cannot be undone.');
         if (ok) {
-            DB.deleteSurvey(survey.id);
+            await DB.deleteSurvey(survey.id);
             toast.show('Survey deleted.', 'success');
             router.push('/dashboard');
         }
