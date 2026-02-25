@@ -1,126 +1,243 @@
-import type { User, Survey, SurveyResponse, Session } from '@/types';
+import { supabase } from './supabase';
+import type { User, Survey, SurveyResponse, Session, Log } from '@/types';
+
+// Helper to map DB snake_case to Frontend camelCase for Surveys
+const mapSurvey = (s: any): Survey => ({
+    id: s.id,
+    title: s.title,
+    titleTh: s.title_th,
+    description: s.description,
+    descriptionTh: s.description_th,
+    creatorId: s.creator_id,
+    status: s.status,
+    questions: s.questions || [],
+    settings: s.settings || {},
+    createdAt: s.created_at,
+    updatedAt: s.updated_at,
+    publishedAt: s.published_at
+});
 
 const KEYS = {
-    users: 'sv_users',
-    surveys: 'sv_surveys',
-    responses: 'sv_responses',
     session: 'sv_session',
     lang: 'survey_lang',
-    logs: 'sv_logs',
 } as const;
 
-function get<T>(key: string): T | null {
-    if (typeof window === 'undefined') return null;
-    try { return JSON.parse(localStorage.getItem(key) ?? 'null'); } catch { return null; }
-}
-function set(key: string, data: unknown): void {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(key, JSON.stringify(data));
-}
-
 // ── Users ────────────────────────────────────────────────────────
-export const getUsers = (): User[] => get<User[]>(KEYS.users) ?? [];
-export const saveUsers = (u: User[]): void => set(KEYS.users, u);
-export const getUserById = (id: string): User | null => getUsers().find(u => u.id === id) ?? null;
+export const getUsers = async (): Promise<User[]> => {
+    const { data, error } = await supabase.from('users').select('*');
+    if (error) { console.error('Error fetching users:', error); return []; }
+    return data.map((u: any) => ({
+        id: u.id, name: u.name, email: u.email, password: u.password,
+        role: u.role, isActive: u.is_active, createdAt: u.created_at
+    }));
+};
+
+export const getUserById = async (id: string): Promise<User | null> => {
+    const { data, error } = await supabase.from('users').select('*').eq('id', id).single();
+    if (error) return null;
+    return {
+        id: data.id, name: data.name, email: data.email, password: data.password,
+        role: data.role, isActive: data.is_active, createdAt: data.created_at
+    };
+};
+
+export const saveUsers = async (users: User[]): Promise<void> => {
+    const upserts = users.map(u => ({
+        id: u.id, name: u.name, email: u.email, password: u.password,
+        role: u.role, is_active: u.isActive, created_at: u.createdAt
+    }));
+    await supabase.from('users').upsert(upserts);
+};
 
 // ── Surveys ──────────────────────────────────────────────────────
-export const getSurveys = (): Survey[] => get<Survey[]>(KEYS.surveys) ?? [];
-export const saveSurveys = (s: Survey[]): void => set(KEYS.surveys, s);
-export const getSurveyById = (id: string): Survey | null => getSurveys().find(s => s.id === id) ?? null;
-export const saveSurvey = (survey: Survey): void => {
-    const list = getSurveys();
-    const idx = list.findIndex(s => s.id === survey.id);
-    if (idx >= 0) list[idx] = survey; else list.push(survey);
-    saveSurveys(list);
+export const getSurveys = async (): Promise<Survey[]> => {
+    const { data, error } = await supabase.from('surveys').select('*').order('created_at', { ascending: false });
+    if (error) { console.error('Error fetching surveys:', error); return []; }
+    return data.map(mapSurvey);
 };
-export const deleteSurvey = (id: string): void => {
-    saveSurveys(getSurveys().filter(s => s.id !== id));
-    saveResponses(getResponses().filter(r => r.surveyId !== id));
+
+export const getSurveyById = async (id: string): Promise<Survey | null> => {
+    const { data, error } = await supabase.from('surveys').select('*').eq('id', id).single();
+    if (error) return null;
+    return mapSurvey(data);
+};
+
+export const saveSurvey = async (survey: Survey): Promise<void> => {
+    const data = {
+        id: survey.id,
+        title: survey.title,
+        title_th: survey.titleTh,
+        description: survey.description,
+        description_th: survey.descriptionTh,
+        creator_id: survey.creatorId,
+        status: survey.status,
+        questions: survey.questions,
+        settings: survey.settings,
+        published_at: survey.publishedAt
+    };
+    await supabase.from('surveys').upsert(data);
+};
+
+export const deleteSurvey = async (id: string): Promise<void> => {
+    await supabase.from('surveys').delete().eq('id', id);
 };
 
 // ── Responses ────────────────────────────────────────────────────
-export const getResponses = (): SurveyResponse[] => get<SurveyResponse[]>(KEYS.responses) ?? [];
-export const saveResponses = (r: SurveyResponse[]): void => set(KEYS.responses, r);
-export const getResponsesBySurvey = (surveyId: string): SurveyResponse[] =>
-    getResponses().filter(r => r.surveyId === surveyId);
-export const saveResponse = (resp: SurveyResponse): void => {
-    const list = getResponses();
-    list.push(resp);
-    saveResponses(list);
+export const getResponses = async (): Promise<SurveyResponse[]> => {
+    const { data, error } = await supabase.from('responses').select('*').order('submitted_at', { ascending: false });
+    if (error) return [];
+    return data.map((r: any) => ({
+        id: r.id, surveyId: r.survey_id, respondentId: r.respondent_id,
+        respondentName: r.respondent_name, answers: r.answers,
+        submittedAt: r.submitted_at, completionTime: r.completion_time
+    }));
 };
 
-// ── Session ──────────────────────────────────────────────────────
-export const getSession = (): Session | null => get<Session>(KEYS.session);
-export const setSession = (user: User): void =>
-    set(KEYS.session, { id: user.id, name: user.name, email: user.email, role: user.role });
-export const clearSession = (): void => {
-    if (typeof window !== 'undefined') localStorage.removeItem(KEYS.session);
+export const getResponsesBySurvey = async (surveyId: string): Promise<SurveyResponse[]> => {
+    const { data, error } = await supabase.from('responses').select('*').eq('survey_id', surveyId).order('submitted_at', { ascending: false });
+    if (error) return [];
+    return data.map((r: any) => ({
+        id: r.id, surveyId: r.survey_id, respondentId: r.respondent_id,
+        respondentName: r.respondent_name, answers: r.answers,
+        submittedAt: r.submitted_at, completionTime: r.completion_time
+    }));
 };
 
-// ── Logs ─────────────────────────────────────────────────────────
-export const getLogs = (): any[] => get<any[]>(KEYS.logs) ?? [];
-export const saveLog = (log: any): void => {
-    const list = getLogs();
-    list.unshift(log); // Newest first
-    set(KEYS.logs, list.slice(0, 1000)); // Keep last 1000
+export const saveResponse = async (resp: SurveyResponse): Promise<void> => {
+    const data = {
+        id: resp.id,
+        survey_id: resp.surveyId,
+        respondent_id: resp.respondentId,
+        respondent_name: resp.respondentName,
+        answers: resp.answers,
+        submitted_at: resp.submittedAt,
+        completion_time: resp.completionTime
+    };
+    await supabase.from('responses').insert(data);
 };
 
-// ── Seed Data ────────────────────────────────────────────────────
-export const initDB = (): void => {
-    if (typeof window === 'undefined') return;
-    if (getUsers().length > 0) return;
+// ── Cookie Helpers ───────────────────────────────────────────────
+const getCookie = (name: string): string | null => {
+    if (typeof document === 'undefined') return null;
+    const match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1') + '=([^;]*)'));
+    return match ? decodeURIComponent(match[1]) : null;
+};
 
-    const users: User[] = [
-        { id: 'u1', name: 'Super Admin', email: 'admin@survey.com', password: 'admin123', role: 'admin', isActive: true, createdAt: '2026-01-01T00:00:00Z' },
-        { id: 'u2', name: 'Kanokkwan Sangsan', email: 'creator@survey.com', password: 'creator123', role: 'creator', isActive: true, createdAt: '2026-01-15T00:00:00Z' },
-        { id: 'u3', name: 'Somchai Jaidee', email: 'user@survey.com', password: 'user123', role: 'respondent', isActive: true, createdAt: '2026-02-01T00:00:00Z' },
-    ];
-    saveUsers(users);
+const setCookie = (name: string, value: string, days = 7): void => {
+    if (typeof document === 'undefined') return;
+    const expires = new Date(Date.now() + days * 864e5).toUTCString();
+    document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Strict; Secure`;
+};
 
-    const surveys: Survey[] = [
-        {
-            id: 's1', title: 'Customer Satisfaction Survey', titleTh: 'แบบสอบถามความพึงพอใจลูกค้า',
-            description: 'Help us improve our services by sharing your experience.',
-            descriptionTh: 'ช่วยเราปรับปรุงบริการโดยแบ่งปันประสบการณ์ของคุณ',
-            creatorId: 'u2', status: 'published',
-            questions: [
-                { id: 'q1', type: 'rating', title: 'How satisfied are you with our service?', titleTh: 'คุณพึงพอใจบริการของเราเพียงใด?', required: true },
-                { id: 'q2', type: 'multiple_choice', title: 'How did you hear about us?', titleTh: 'คุณรู้จักเราได้อย่างไร?', required: true, options: ['Social Media', 'Friend Referral', 'Search Engine', 'Advertisement', 'Other'], optionsTh: ['โซเชียลมีเดีย', 'เพื่อนแนะนำ', 'เครื่องมือค้นหา', 'โฆษณา', 'อื่นๆ'] },
-                { id: 'q3', type: 'long_text', title: 'What improvements would you suggest?', titleTh: 'คุณมีข้อเสนอแนะอย่างไรบ้าง?', required: false },
-                { id: 'q4', type: 'yes_no', title: 'Would you recommend us to others?', titleTh: 'คุณจะแนะนำเราให้คนอื่นหรือไม่?', required: true },
-            ],
-            settings: { allowMultiple: false, showProgress: true, anonymous: false },
-            createdAt: '2026-02-01T09:00:00Z', updatedAt: '2026-02-01T09:00:00Z', publishedAt: '2026-02-01T09:00:00Z',
-        },
-        {
-            id: 's2', title: 'Employee Engagement Survey', titleTh: 'แบบสอบถามความผูกพันพนักงาน',
-            description: 'Annual employee engagement and satisfaction survey.',
-            descriptionTh: 'แบบสอบถามความผูกพันและความพึงพอใจพนักงานประจำปี',
-            creatorId: 'u2', status: 'draft',
-            questions: [
-                { id: 'q5', type: 'scale', title: 'Rate your overall job satisfaction (1-10)', titleTh: 'ให้คะแนนความพึงพอใจในงานโดยรวม (1-10)', required: true, minValue: 1, maxValue: 10, minLabel: 'Very Dissatisfied', maxLabel: 'Very Satisfied' },
-                { id: 'q6', type: 'checkboxes', title: 'Which benefits do you value most?', titleTh: 'สวัสดิการใดที่คุณให้คุณค่ามากที่สุด?', required: false, options: ['Health Insurance', 'Remote Work', 'Training', 'Salary', 'Annual Leave'], optionsTh: ['ประกันสุขภาพ', 'ทำงานจากบ้าน', 'การฝึกอบรม', 'เงินเดือน', 'วันลาประจำปี'] },
-            ],
-            settings: { allowMultiple: false, showProgress: true, anonymous: true },
-            createdAt: '2026-02-10T10:00:00Z', updatedAt: '2026-02-10T10:00:00Z', publishedAt: null,
-        },
-    ];
-    saveSurveys(surveys);
+const deleteCookie = (name: string): void => {
+    if (typeof document === 'undefined') return;
+    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+};
 
-    const names = ['Alice Johnson', 'Bob Smith', 'Carol White', 'David Brown', 'Emma Davis'];
-    const responses: SurveyResponse[] = Array.from({ length: 8 }, (_, i) => {
-        const d = new Date(); d.setDate(d.getDate() - Math.floor(Math.random() * 14));
-        return {
-            id: `r${i + 1}`, surveyId: 's1', respondentId: null,
-            respondentName: names[i % names.length],
-            answers: {
-                q1: Math.floor(Math.random() * 3) + 3,
-                q2: ['Social Media', 'Friend Referral', 'Search Engine', 'Advertisement', 'Other'][Math.floor(Math.random() * 5)],
-                q3: ['Great service!', 'Could be faster', 'Very helpful team', 'Excellent experience'][i % 4],
-                q4: Math.random() > 0.2 ? 'yes' : 'no',
-            },
-            submittedAt: d.toISOString(), completionTime: Math.floor(Math.random() * 180) + 60,
-        };
+const generateToken = (): string => {
+    const arr = new Uint8Array(32);
+    if (typeof crypto !== 'undefined') crypto.getRandomValues(arr);
+    else for (let i = 0; i < 32; i++) arr[i] = Math.floor(Math.random() * 256);
+    return Array.from(arr, b => b.toString(16).padStart(2, '0')).join('');
+};
+
+// ── Session (Supabase + Cookie) ──────────────────────────────────
+let _cachedSession: Session | null = null;
+
+export const getSession = (): Session | null => {
+    // Return in-memory cache (set after login or init)
+    return _cachedSession;
+};
+
+export const loadSession = async (): Promise<Session | null> => {
+    const token = getCookie(KEYS.session);
+    if (!token) { _cachedSession = null; return null; }
+
+    // Validate token against Supabase sessions table
+    const { data: session, error } = await supabase
+        .from('sessions')
+        .select('user_id, expires_at')
+        .eq('token', token)
+        .single();
+
+    if (error || !session) {
+        deleteCookie(KEYS.session);
+        _cachedSession = null;
+        return null;
+    }
+
+    // Check expiry
+    if (new Date(session.expires_at) < new Date()) {
+        await supabase.from('sessions').delete().eq('token', token);
+        deleteCookie(KEYS.session);
+        _cachedSession = null;
+        return null;
+    }
+
+    // Fetch user data
+    const user = await getUserById(session.user_id);
+    if (!user || !user.isActive) {
+        await supabase.from('sessions').delete().eq('token', token);
+        deleteCookie(KEYS.session);
+        _cachedSession = null;
+        return null;
+    }
+
+    _cachedSession = { id: user.id, name: user.name, email: user.email, role: user.role };
+    return _cachedSession;
+};
+
+export const setSession = async (user: User): Promise<void> => {
+    // Clear any existing session for this user
+    await supabase.from('sessions').delete().eq('user_id', user.id);
+
+    const token = generateToken();
+    await supabase.from('sessions').insert({
+        user_id: user.id,
+        token,
+        expires_at: new Date(Date.now() + 7 * 864e5).toISOString()
     });
-    saveResponses(responses);
+
+    setCookie(KEYS.session, token, 7);
+    _cachedSession = { id: user.id, name: user.name, email: user.email, role: user.role };
+};
+
+export const clearSession = async (): Promise<void> => {
+    const token = getCookie(KEYS.session);
+    if (token) {
+        await supabase.from('sessions').delete().eq('token', token);
+    }
+    deleteCookie(KEYS.session);
+    _cachedSession = null;
+};
+
+export const saveLog = async (log: Log): Promise<void> => {
+    const data = {
+        user_id: log.userId,
+        action: log.action,
+        metadata: log.metadata || {}
+    };
+    await supabase.from('logs').insert(data);
+};
+
+export const getLogs = async (): Promise<Log[]> => {
+    const { data, error } = await supabase.from('logs').select('*').order('created_at', { ascending: false });
+    if (error) { console.error('Error fetching logs:', error); return []; }
+    return data.map((l: any) => ({
+        id: l.id,
+        userId: l.user_id,
+        action: l.action,
+        metadata: l.metadata,
+        createdAt: l.created_at
+    }));
+};
+
+// ── Seed Data Logic (Now needs to be called carefully) ──────────
+export const initDB = async (): Promise<void> => {
+    // This will now insert into Supabase if tables are empty
+    const users = await getUsers();
+    if (users.length > 0) return;
+
+    // ... (rest of seeding logic could be added here if needed, 
+    // but better to manage via Supabase dashboard or a script)
 };
