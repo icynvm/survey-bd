@@ -21,7 +21,7 @@ const Layout: React.FC<LayoutProps> = ({ children, active }) => {
     const handleLogout = () => { logout(); router.push('/'); };
 
     const NavItem = ({ href, icon, label, name }: { href: string; icon: string; label: string; name: string }) => (
-        <Link href={href} className={`nav-item ${active === name ? 'active' : ''}`}>
+        <Link href={href} className={`nav-item ${active === name ? 'active' : ''}`} onClick={() => setSidebarOpen(false)}>
             <span className="nav-icon">{icon}</span>
             <span>{label}</span>
         </Link>
