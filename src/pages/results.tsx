@@ -22,6 +22,7 @@ export default function ResultsPage() {
     const [responses, setResponses] = useState<SurveyResponse[]>([]);
     const [tab, setTab] = useState<'summary' | 'individual'>('summary');
     const [loading, setLoading] = useState(true);
+    const [pickerOpen, setPickerOpen] = useState(false);
     const chartRegistered = useRef(false);
 
     useEffect(() => {
@@ -86,7 +87,7 @@ export default function ResultsPage() {
         return { labels: opts, datasets: [{ data: counts, backgroundColor: colors.slice(0, opts.length), borderWidth: 0 }] };
     };
 
-    const [pickerOpen, setPickerOpen] = useState(false);
+
 
     return (
         <>
