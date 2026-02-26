@@ -5,6 +5,7 @@ export type SurveyStatus = 'draft' | 'published' | 'closed';
 export type QuestionType =
     | 'multiple_choice' | 'checkboxes' | 'short_text' | 'long_text'
     | 'rating' | 'scale' | 'dropdown' | 'date' | 'yes_no' | 'likert'
+    | 'email' | 'phone' | 'address' | 'file_upload'
     | 'section';
 export type Lang = 'en' | 'th';
 
@@ -57,6 +58,9 @@ export interface Question {
     likertRowHasOther?: boolean[]; // ← NEW: maps 1:1 with likertRows to show 'Please specify'
     likertScale?: string[];     // ← NEW: column labels e.g. ['Very Satisfied','Satisfied',...]
     likertScaleTh?: string[];
+    // file upload
+    maxFiles?: number;          // max number of files allowed (default 1)
+    acceptedFileTypes?: string[]; // e.g. ['.pdf', '.jpg', '.png']
 }
 
 export interface SurveySettings {
