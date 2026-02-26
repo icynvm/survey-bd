@@ -1,3 +1,4 @@
 {
-  "$schema": "https://json.schemastore.org/vercelignore.json"
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "ignoreCommand": "bash -c '[[ \"$VERCEL_GIT_COMMIT_REF\" != \"main\" ]]'"
 }
