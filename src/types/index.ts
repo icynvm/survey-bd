@@ -1,4 +1,4 @@
-// ── Core Types ──────────────────────────────────────────────────
+// ── Core Types ── (updated 2026-02-26)
 
 export type Role = 'admin' | 'creator' | 'respondent';
 export type SurveyStatus = 'draft' | 'published' | 'closed';
