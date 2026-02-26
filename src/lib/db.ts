@@ -234,10 +234,17 @@ export const getLogs = async (): Promise<Log[]> => {
 
 // ── Seed Data Logic (Now needs to be called carefully) ──────────
 export const initDB = async (): Promise<void> => {
-    // This will now insert into Supabase if tables are empty
+    // Clean up ALL legacy localStorage data (security: removes plaintext passwords etc.)
+    if (typeof window !== 'undefined') {
+        const legacyKeys = ['sv_users', 'sv_surveys', 'sv_responses', 'sv_logs', 'sv_session', 'survey_lang'];
+        legacyKeys.forEach(key => {
+            try { localStorage.removeItem(key); } catch { /* ignore */ }
+        });
+    }
+
+    // Check if Supabase has seed data
     const users = await getUsers();
     if (users.length > 0) return;
 
-    // ... (rest of seeding logic could be added here if needed, 
-    // but better to manage via Supabase dashboard or a script)
+    // ... (seeding managed via Supabase dashboard)
 };
