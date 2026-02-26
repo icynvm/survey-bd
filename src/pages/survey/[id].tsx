@@ -29,6 +29,8 @@ export default function SurveyPage() {
     const [draftSaved, setDraftSaved] = useState(false);
     const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [step, setStep] = useState(0); // 0=Intro, 1=Questions, 2=Done
+    const [fileUploads, setFileUploads] = useState<Record<string, File[]>>({});
+    const [uploading, setUploading] = useState(false);
 
     // Draft key for localStorage
     const draftKey = id ? `survey_draft_${id}` : null;
@@ -98,6 +100,21 @@ export default function SurveyPage() {
         });
         setErrors(e => ({ ...e, [qId]: false }));
     };
+
+    const handleFileSelect = (qId: string, files: FileList | null, maxFiles: number = 5) => {
+        if (!files) return;
+        const existing = fileUploads[qId] || [];
+        const newFiles = Array.from(files).slice(0, maxFiles - existing.length);
+        const updated = [...existing, ...newFiles].slice(0, maxFiles);
+        setFileUploads(prev => ({ ...prev, [qId]: updated }));
+        setAnswer(qId, updated.map(f => f.name).join(', '));
+    };
+
+    const removeFile = (qId: string, idx: number) => {
+        const updated = (fileUploads[qId] || []).filter((_, i) => i !== idx);
+        setFileUploads(prev => ({ ...prev, [qId]: updated }));
+        setAnswer(qId, updated.length ? updated.map(f => f.name).join(', ') : '');
+    };
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const newErrors: Record<string, boolean> = {};
@@ -110,6 +127,10 @@ export default function SurveyPage() {
                     const rows = q.likertRows ?? [];
                     const likertAns = (ans as LikertAns) ?? {};
                     if (rows.some(r => !likertAns[r])) { newErrors[q.id] = true; valid = false; }
+                } else if (q.type === 'file_upload') {
+                    if (!fileUploads[q.id] || fileUploads[q.id].length === 0) { newErrors[q.id] = true; valid = false; }
+                } else if (q.type === 'email') {
+                    if (!ans || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(ans))) { newErrors[q.id] = true; valid = false; }
                 } else if (!ans || (Array.isArray(ans) && (ans as string[]).length === 0) || ans === '') {
                     newErrors[q.id] = true; valid = false;
                 }
@@ -135,6 +156,29 @@ export default function SurveyPage() {
             submittedAt: new Date().toISOString(),
             completionTime: Math.round((Date.now() - startTime) / 1000),
         };
+
+        // Upload files to Supabase Storage
+        const fileQuestions = survey.questions.filter(q => q.type === 'file_upload');
+        if (fileQuestions.length > 0) {
+            setUploading(true);
+            for (const fq of fileQuestions) {
+                const files = fileUploads[fq.id] || [];
+                const uploadedNames: string[] = [];
+                for (const file of files) {
+                    const result = await DB.uploadFile(file, resp.id, fq.id);
+                    if (result) {
+                        await DB.saveFileUpload({
+                            id: uid(), responseId: resp.id, questionId: fq.id,
+                            fileName: file.name, fileSize: file.size, fileType: file.type,
+                            storagePath: result.path
+                        });
+                        uploadedNames.push(file.name);
+                    }
+                }
+                resp.answers[fq.id] = uploadedNames.join(', ');
+            }
+            setUploading(false);
+        }
         await DB.saveResponse(resp);
         // Clear draft after successful submit
         if (draftKey) { try { localStorage.removeItem(draftKey); } catch { /* ignore */ } }
@@ -329,6 +373,59 @@ export default function SurveyPage() {
                         </div>
                     )
                 }
+
+                {/* ── Email ── */}
+                {q.type === 'email' && (
+                    <div>
+                        <input className="form-input" type="email" value={(answers[q.id] as string) ?? ''} onChange={e => setAnswer(q.id, e.target.value)} placeholder="example@email.com" />
+                        {answers[q.id] && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(answers[q.id])) && (
+                            <div style={{ fontSize: 12, color: 'var(--danger)', marginTop: 4 }}>⚠ Please enter a valid email address</div>
+                        )}
+                    </div>
+                )}
+
+                {/* ── Phone ── */}
+                {q.type === 'phone' && (
+                    <input className="form-input" type="tel" value={(answers[q.id] as string) ?? ''} onChange={e => setAnswer(q.id, e.target.value)} placeholder="+66 XX XXX XXXX" />
+                )}
+
+                {/* ── Address ── */}
+                {q.type === 'address' && (
+                    <textarea className="form-input" rows={3} value={(answers[q.id] as string) ?? ''} onChange={e => setAnswer(q.id, e.target.value)} placeholder={lang === 'th' ? 'บ้านเลขที่, ถนน, แขวง/ตำบล, เขต/อำเภอ, จังหวัด, รหัสไปรษณีย์' : 'Street address, City, State/Province, Postal code'} style={{ resize: 'vertical' }} />
+                )}
+
+                {/* ── File Upload ── */}
+                {q.type === 'file_upload' && (
+                    <div>
+                        <div
+                            onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--primary)'; }}
+                            onDragLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; }}
+                            onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--border)'; handleFileSelect(q.id, e.dataTransfer.files, q.maxFiles ?? 5); }}
+                            style={{ border: '2px dashed var(--border)', borderRadius: 12, padding: '24px 16px', textAlign: 'center', cursor: 'pointer', transition: 'border-color 0.2s' }}
+                            onClick={() => document.getElementById(`file-${q.id}`)?.click()}
+                        >
+                            <div style={{ fontSize: 32, marginBottom: 8 }}>📎</div>
+                            <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{lang === 'th' ? 'คลิกหรือลากไฟล์มาวางที่นี่' : 'Click or drag files here'}</div>
+                            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
+                                {lang === 'th' ? `สูงสุด ${q.maxFiles ?? 5} ไฟล์` : `Max ${q.maxFiles ?? 5} files`}
+                                {q.acceptedFileTypes && ` (${q.acceptedFileTypes.join(', ')})`}
+                            </div>
+                            <input id={`file-${q.id}`} type="file" multiple={((q.maxFiles ?? 5) > 1)} accept={q.acceptedFileTypes?.join(',') || undefined} onChange={e => handleFileSelect(q.id, e.target.files, q.maxFiles ?? 5)} style={{ display: 'none' }} />
+                        </div>
+                        {(fileUploads[q.id] || []).length > 0 && (
+                            <div style={{ marginTop: 10 }}>
+                                {(fileUploads[q.id] || []).map((f, fi) => (
+                                    <div key={fi} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: 'rgba(99,102,241,0.08)', borderRadius: 8, marginBottom: 6, fontSize: 13 }}>
+                                        <span>📄</span>
+                                        <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
+                                        <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>{(f.size / 1024).toFixed(0)} KB</span>
+                                        <button type="button" onClick={() => removeFile(q.id, fi)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: 16, padding: 0 }}>✕</button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
             </div >
         );
     };
