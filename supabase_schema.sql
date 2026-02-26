@@ -54,6 +54,18 @@ CREATE TABLE IF NOT EXISTS sessions (
     expires_at TIMESTAMP WITH TIME ZONE DEFAULT (NOW() + INTERVAL '7 days')
 );
 
+-- 6. Create File Uploads Table
+CREATE TABLE IF NOT EXISTS file_uploads (
+    id TEXT PRIMARY KEY,
+    response_id TEXT REFERENCES responses(id) ON DELETE CASCADE,
+    question_id TEXT NOT NULL,
+    file_name TEXT NOT NULL,
+    file_size INTEGER,
+    file_type TEXT,
+    storage_path TEXT NOT NULL,
+    uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Enable RLS (Row Level Security) - Optional but recommended
 -- For now, we will allow all access to keep it simple as requested,
 -- but normally you would restrict this.
@@ -62,6 +74,7 @@ ALTER TABLE surveys ENABLE ROW LEVEL SECURITY;
 ALTER TABLE responses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE file_uploads ENABLE ROW LEVEL SECURITY;
 
 -- Simple "Allow All" policies for initial setup (Security can be hardened later)
 CREATE POLICY "Allow All Users" ON users FOR ALL USING (true) WITH CHECK (true);
@@ -69,6 +82,7 @@ CREATE POLICY "Allow All Surveys" ON surveys FOR ALL USING (true) WITH CHECK (tr
 CREATE POLICY "Allow All Responses" ON responses FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow All Logs" ON logs FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow All Sessions" ON sessions FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow All FileUploads" ON file_uploads FOR ALL USING (true) WITH CHECK (true);
 
 -- Functions for auto-updating timestamps
 CREATE OR REPLACE FUNCTION update_updated_at_column()
