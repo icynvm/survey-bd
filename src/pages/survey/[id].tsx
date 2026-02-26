@@ -6,7 +6,7 @@ import { useApp } from '@/contexts/AppContext';
 import { useToast, Toast } from '@/components/ui';
 import * as DB from '@/lib/db';
 import { uid, DEFAULT_LIKERT_SCALE, DEFAULT_LIKERT_SCALE_TH } from '@/lib/utils';
-import type { Survey, Question, AnswerValue } from '@/types';
+import type { Survey, Question, AnswerValue, SurveyResponse } from '@/types';
 
 export const getStaticPaths: GetStaticPaths = async () => ({ paths: [], fallback: 'blocking' });
 export const getStaticProps: GetStaticProps = async () => ({ props: {} });
