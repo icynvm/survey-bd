@@ -232,6 +232,53 @@ export const getLogs = async (): Promise<Log[]> => {
     }));
 };
 
+// ── File Uploads (Supabase Storage) ─────────────────────────────
+export const uploadFile = async (file: File, responseId: string, questionId: string): Promise<{ path: string; url: string } | null> => {
+    const ext = file.name.split('.').pop() || 'bin';
+    const path = `${responseId}/${questionId}/${Date.now()}_${Math.random().toString(36).slice(2, 6)}.${ext}`;
+
+    const { error } = await supabase.storage
+        .from('survey-files')
+        .upload(path, file, { contentType: file.type, upsert: false });
+
+    if (error) { console.error('Upload error:', error); return null; }
+
+    const { data: urlData } = supabase.storage.from('survey-files').getPublicUrl(path);
+    return { path, url: urlData.publicUrl };
+};
+
+export const saveFileUpload = async (meta: { id: string; responseId: string; questionId: string; fileName: string; fileSize: number; fileType: string; storagePath: string }): Promise<void> => {
+    await supabase.from('file_uploads').insert({
+        id: meta.id,
+        response_id: meta.responseId,
+        question_id: meta.questionId,
+        file_name: meta.fileName,
+        file_size: meta.fileSize,
+        file_type: meta.fileType,
+        storage_path: meta.storagePath
+    });
+};
+
+export const getFileUrl = (path: string): string => {
+    const { data } = supabase.storage.from('survey-files').getPublicUrl(path);
+    return data.publicUrl;
+};
+
+export const getFileUploads = async (responseId: string): Promise<any[]> => {
+    const { data, error } = await supabase.from('file_uploads').select('*').eq('response_id', responseId);
+    if (error) { console.error('Error fetching file uploads:', error); return []; }
+    return data.map((f: any) => ({
+        id: f.id,
+        responseId: f.response_id,
+        questionId: f.question_id,
+        fileName: f.file_name,
+        fileSize: f.file_size,
+        fileType: f.file_type,
+        storagePath: f.storage_path,
+        uploadedAt: f.uploaded_at
+    }));
+};
+
 // ── Seed Data Logic (Now needs to be called carefully) ──────────
 export const initDB = async (): Promise<void> => {
     // Clean up ALL legacy localStorage data (security: removes plaintext passwords etc.)
