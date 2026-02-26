@@ -8,7 +8,7 @@ import { QUESTION_TYPE_INFO, uid, DEFAULT_LIKERT_SCALE, DEFAULT_LIKERT_SCALE_TH 
 import * as DB from '@/lib/db';
 import * as Auth from '@/lib/auth';
 import type { Survey, Question, QuestionType } from '@/types';
-import { FiGrid, FiList, FiCheckSquare, FiType, FiAlignLeft, FiStar, FiSliders, FiChevronDown, FiCalendar, FiToggleRight, FiMenu, FiX } from 'react-icons/fi';
+import { FiGrid, FiList, FiCheckSquare, FiType, FiAlignLeft, FiStar, FiSliders, FiChevronDown, FiCalendar, FiToggleRight, FiMenu, FiX, FiMail, FiPhone, FiMapPin, FiPaperclip } from 'react-icons/fi';
 
 const ICON_MAP: Record<QuestionType, React.ReactNode> = {
     likert: <FiGrid size={16} />,
@@ -21,12 +21,16 @@ const ICON_MAP: Record<QuestionType, React.ReactNode> = {
     dropdown: <FiChevronDown size={16} />,
     date: <FiCalendar size={16} />,
     yes_no: <FiToggleRight size={16} />,
+    email: <FiMail size={16} />,
+    phone: <FiPhone size={16} />,
+    address: <FiMapPin size={16} />,
+    file_upload: <FiPaperclip size={16} />,
     section: <span style={{ fontSize: 16 }}>🔖</span>
 };
 
 const Q_TYPES: QuestionType[] = [
     'section', 'likert', 'multiple_choice', 'checkboxes', 'short_text', 'long_text',
-    'rating', 'scale', 'dropdown', 'date', 'yes_no',
+    'rating', 'scale', 'dropdown', 'date', 'yes_no', 'email', 'phone', 'address', 'file_upload',
 ];
 
 const inputStyle: React.CSSProperties = {
