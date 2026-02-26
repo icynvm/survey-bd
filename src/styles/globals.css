@@ -1431,6 +1431,11 @@ tbody tr:hover {
     padding: 16px;
   }
 
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
   .hide-on-mobile {
     display: none !important;
   }
