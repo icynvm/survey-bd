@@ -4,10 +4,6 @@ import Head from 'next/head';
 import { useApp } from '@/contexts/AppContext';
 import { LangToggle } from '@/components/ui';
 
-const DEMO = [
-    { role: 'Admin', email: 'admin@survey.com', pw: 'admin123' },
-    { role: 'Creator', email: 'creator@survey.com', pw: 'creator123' },
-];
 
 export default function LoginPage() {
     const { user, t, ready, login } = useApp();
@@ -33,7 +29,6 @@ export default function LoginPage() {
         }
     };
 
-    const fillDemo = (e: string, p: string) => { setEmail(e); setPassword(p); setError(''); };
 
     if (!ready) return null;
 
@@ -76,17 +71,7 @@ export default function LoginPage() {
                             {loading ? '⏳ ' + t('common.loading') : '🚀 ' + t('login.loginBtn')}
                         </button>
                     </form>
-                    <div style={{ marginTop: 24, textAlign: 'center' }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 12 }}>{t('login.demoAccounts')}</div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
-                            {DEMO.map(d => (
-                                <button key={d.email} onClick={() => fillDemo(d.email, d.pw)} className="btn btn-secondary btn-sm" style={{ flexDirection: 'column', gap: 2, padding: '10px 8px', textAlign: 'center' }}>
-                                    <div style={{ fontWeight: 700, fontSize: 12 }}>{d.role}</div>
-                                    <div style={{ fontSize: 10, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>{d.email}</div>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+
                 </div>
             </div>
         </>
