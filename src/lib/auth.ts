@@ -2,8 +2,7 @@ import type { Session, User, Role } from '@/types';
 import * as DB from './db';
 
 export const login = async (email: string, password: string): Promise<{ success: boolean; user?: User }> => {
-    const list = await DB.getUsers();
-    const user = list.find(u => u.email === email && u.password === password && u.isActive);
+    const user = await DB.loginUser(email, password);
     if (user) {
         await DB.setSession(user);
         await DB.saveLog({ userId: user.id, userName: user.name, action: 'login', timestamp: new Date().toISOString() });
