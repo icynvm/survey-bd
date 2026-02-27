@@ -276,6 +276,26 @@ export default function BuilderPage() {
                     </div>
                 </>)}
 
+                {/* Layout Width */}
+                {selectedQ.type !== 'section' && selectedQ.type !== 'likert' && (
+                    <div className="form-group">
+                        <label className="form-label">{lang === 'th' ? 'ความกว้าง' : 'Layout Width'}</label>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                            {(['full', 'half', 'third'] as const).map(w => (
+                                <button key={w} onClick={() => updateQ(selectedQ.id, { width: w })} style={{
+                                    flex: 1, padding: '8px 4px', borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                                    background: (selectedQ.width ?? 'full') === w ? 'var(--primary)' : 'rgba(255,255,255,0.06)',
+                                    color: (selectedQ.width ?? 'full') === w ? '#fff' : 'var(--text-secondary)',
+                                    border: `1px solid ${(selectedQ.width ?? 'full') === w ? 'var(--primary)' : 'var(--border)'}`,
+                                    transition: 'all 0.2s'
+                                }}>
+                                    {w === 'full' ? '100%' : w === 'half' ? '50%' : '33%'}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 <label className="form-check">
                     <input type="checkbox" checked={selectedQ.required} onChange={e => updateQ(selectedQ.id, { required: e.target.checked })} />
                     <span>Required</span>
@@ -356,10 +376,12 @@ export default function BuilderPage() {
                                     <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 6 }}>No questions yet</div>
                                     <div style={{ fontSize: 13 }}>Click a question type on the left to add your first question</div>
                                 </div>
-                            ) : survey.questions.map((q, i) => {
+                            ) : <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>{survey.questions.map((q, i) => {
                                 const info = QUESTION_TYPE_INFO[q.type];
                                 const title = lang === 'th' && q.titleTh ? q.titleTh : q.title || `Question ${i + 1}`;
                                 const desc = lang === 'th' && q.descriptionTh ? q.descriptionTh : q.description;
+                                const widthMap = { full: '100%', half: 'calc(50% - 8px)', third: 'calc(33.33% - 11px)' };
+                                const qWidth = widthMap[q.width ?? 'full'];
                                 return (
                                     <div
                                         key={q.id}
@@ -375,9 +397,10 @@ export default function BuilderPage() {
                                         }}
                                         onClick={() => { setSelectedQId(q.id); setSettingsOpen(true); }}
                                         style={{
+                                            width: qWidth,
                                             background: selectedQId === q.id ? 'var(--bg-card-hover)' : 'var(--bg-card)',
                                             border: `1px solid ${selectedQId === q.id ? 'var(--primary)' : 'var(--border)'}`,
-                                            borderRadius: 'var(--radius-lg)', padding: '20px 24px', marginBottom: '16px',
+                                            borderRadius: 'var(--radius-lg)', padding: '20px 24px',
                                             cursor: 'pointer', position: 'relative', transition: 'var(--transition)',
                                             boxShadow: selectedQId === q.id ? '0 0 0 2px rgba(99, 102, 241, 0.2)' : '0 4px 20px rgba(0,0,0,0.1)'
                                         }}
@@ -395,7 +418,7 @@ export default function BuilderPage() {
                                                     </>
                                                 )}
                                                 <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
-                                                    {ICON_MAP[q.type]} {lang === 'th' ? info.th : info.en}{q.type === 'likert' && ` · ${(q.likertRows ?? []).length} rows`}{q.hasOther && ' · +Other'}
+                                                    {ICON_MAP[q.type]} {lang === 'th' ? info.th : info.en}{q.type === 'likert' && ` · ${(q.likertRows ?? []).length} rows`}{q.hasOther && ' · +Other'}{q.width && q.width !== 'full' && ` · ${q.width === 'half' ? '50%' : '33%'}`}
                                                 </div>
                                             </div>
                                             <div style={{ display: 'flex', gap: 6 }}>
@@ -415,7 +438,7 @@ export default function BuilderPage() {
                                         )}
                                     </div>
                                 );
-                            })}
+                            })}</div>}
                         </div>
                         {/* Settings panel */}
                         {settingsOpen && <div className="sidebar-overlay open show-on-mobile" onClick={() => setSettingsOpen(false)} />}
