@@ -32,6 +32,23 @@ export const getUsers = async (): Promise<User[]> => {
     }));
 };
 
+// Secure login: query only the matching user by email (no password leak)
+export const loginUser = async (email: string, password: string): Promise<User | null> => {
+    const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .eq('password', password)
+        .eq('is_active', true)
+        .single();
+
+    if (error || !data) return null;
+    return {
+        id: data.id, name: data.name, email: data.email, password: data.password,
+        role: data.role, isActive: data.is_active, createdAt: data.created_at
+    };
+};
+
 export const getUserById = async (id: string): Promise<User | null> => {
     const { data, error } = await supabase.from('users').select('*').eq('id', id).single();
     if (error) return null;
