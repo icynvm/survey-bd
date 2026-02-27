@@ -212,8 +212,11 @@ export default function SurveyPage() {
         const scale = lang === 'th' ? (q.likertScaleTh ?? DEFAULT_LIKERT_SCALE_TH) : (q.likertScale ?? DEFAULT_LIKERT_SCALE);
         const rows = lang === 'th' ? (q.likertRowsTh ?? q.likertRows ?? []) : (q.likertRows ?? []);
 
+        const widthMap: Record<string, string> = { full: '100%', half: 'calc(50% - 8px)', third: 'calc(33.33% - 11px)' };
+        const qWidth = widthMap[q.width ?? 'full'];
+
         return (
-            <div key={q.id} style={{ background: 'var(--bg-card)', border: `1px solid ${err ? 'var(--danger)' : 'var(--border)'}`, borderRadius: 12, padding: 20, marginBottom: 16 }}>
+            <div key={q.id} style={{ width: qWidth, background: 'var(--bg-card)', border: `1px solid ${err ? 'var(--danger)' : 'var(--border)'}`, borderRadius: 12, padding: 20 }}>
                 {/* Question header */}
                 <div style={{ display: 'flex', gap: 10, marginBottom: qdesc ? 4 : 14, alignItems: 'flex-start' }}>
                     <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0, marginTop: 1 }}>{qNum}</div>
@@ -458,8 +461,10 @@ export default function SurveyPage() {
                             <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 12 }}>{survey.questions.length} {t('survey.questions')}</div>
                         </div>
                         <form onSubmit={handleSubmit}>
-                            {survey.questions.map((q, i) => renderQuestion(q, i))}
-                            <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: 16, fontSize: 16, fontWeight: 700 }}>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
+                                {survey.questions.map((q, i) => renderQuestion(q, i))}
+                            </div>
+                            <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: 16, fontSize: 16, fontWeight: 700, marginTop: 16 }}>
                                 🚀 {t('survey.submitResponse')}
                             </button>
                         </form>
