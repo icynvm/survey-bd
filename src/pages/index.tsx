@@ -6,7 +6,7 @@ import { LangToggle } from '@/components/ui';
 
 
 export default function LoginPage() {
-    const { user, t, ready, login } = useApp();
+    const { user, t, lang, ready, login } = useApp();
     const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -71,6 +71,19 @@ export default function LoginPage() {
                             {loading ? '⏳ ' + t('common.loading') : '🚀 ' + t('login.loginBtn')}
                         </button>
                     </form>
+
+                    {router.query.registered && (
+                        <div style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 8, padding: '10px 14px', color: '#86efac', fontSize: 13, marginTop: 12 }}>
+                            {lang === 'th' ? '✅ สร้างบัญชีสำเร็จ! กรุณาเข้าสู่ระบบ' : '✅ Account created! Please sign in.'}
+                        </div>
+                    )}
+
+                    <div style={{ marginTop: 20, textAlign: 'center', fontSize: 13, color: 'var(--text-secondary)' }}>
+                        {lang === 'th' ? 'ยังไม่มีบัญชี?' : "Don't have an account?"}{' '}
+                        <a href="/register" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 700 }}>
+                            {lang === 'th' ? 'สมัครสมาชิก' : 'Create Account'}
+                        </a>
+                    </div>
 
                 </div>
             </div>
