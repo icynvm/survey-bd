@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Noto+Sans+Thai:wght@400;600&display=swap');
 
 :root {
   --bg-primary: #0F172A;
@@ -44,6 +44,7 @@
 html {
   font-size: 16px;
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -53,6 +54,7 @@ body {
   color: var(--text-primary);
   min-height: 100vh;
   overflow-x: hidden;
+  text-rendering: optimizeSpeed;
 }
 
 a {
@@ -1431,6 +1433,29 @@ tbody tr:hover {
   .page-content {
     flex: 1;
     padding: 16px;
+  }
+
+  /* Force questions to full width on mobile */
+  .builder-canvas>div>div,
+  form>div>div {
+    width: 100% !important;
+  }
+
+  /* Fix text overflow on question cards */
+  .builder-canvas div[style*='flex-start'] {
+    flex-wrap: nowrap;
+    overflow: hidden;
+  }
+
+  .builder-canvas div[style*='flex-start']>div:nth-child(3) {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .builder-canvas div[style*='flex-start']>div:nth-child(3)>div {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .table-wrap {
