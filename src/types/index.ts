@@ -61,6 +61,8 @@ export interface Question {
     // file upload
     maxFiles?: number;          // max number of files allowed (default 1)
     acceptedFileTypes?: string[]; // e.g. ['.pdf', '.jpg', '.png']
+    // layout
+    width?: 'full' | 'half' | 'third'; // grid width: full=100%, half=50%, third=33%
 }
 
 export interface SurveySettings {
