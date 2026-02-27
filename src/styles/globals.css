@@ -107,7 +107,7 @@ select {
 
 .sidebar {
   width: var(--sidebar-w);
-  min-height: 100vh;
+  height: 100vh;
   background: rgba(2, 6, 23, 0.7);
   backdrop-filter: blur(20px);
   border-right: 1px solid var(--border);
@@ -118,6 +118,8 @@ select {
   flex-direction: column;
   z-index: 100;
   transition: var(--transition);
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .sidebar.collapsed {
